@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GigaBuild — Configure Your Giga-Sphere Platform</title>
+<meta name="description" content="Build your compliance operating system. Configure Giga-Sphere modules for your fleet in minutes." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ============================== HEADER / PROGRESS ============================== -->
+<header class="app-header">
+  <div class="brand">
+    <span class="brand-mark">GigaBuild</span>
+    <span class="brand-tag">by Giga-Sphere</span>
+  </div>
+  <div class="step-indicator" id="stepIndicator">Step 1 of 8</div>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<main class="app">
+
+<!-- ============================== STEP 1 — WELCOME / FREIGHT TYPE ============================== -->
+<section class="step active" data-step="1">
+  <div class="step-header">
+    <h1>Build Your Compliance Operating System</h1>
+    <p class="lede">Tell us about your operation and we'll configure everything automatically.</p>
+  </div>
+
+  <h2 class="section-title">What kind of freight do you haul?</h2>
+  <div class="freight-grid" id="freightGrid">
+    <!-- populated by JS -->
+  </div>
+
+  <div class="step-actions">
+    <div></div>
+    <button class="btn btn-primary" id="step1Next" disabled>Next →</button>
+  </div>
+</section>
+
+<!-- ============================== STEP 2 — ABOUT YOUR FLEET ============================== -->
+<section class="step" data-step="2">
+  <div class="step-header">
+    <h1>About Your Fleet</h1>
+    <p class="lede">A few details so we can right-size your modules and compliance settings.</p>
+  </div>
+
+  <div class="form-grid">
+    <div class="field">
+      <label for="fleetSize">Fleet size <span class="muted">(trucks)</span></label>
+      <div class="slider-row">
+        <input type="range" id="fleetSize" min="1" max="100" value="5" />
+        <output id="fleetSizeOut" class="slider-out">5</output>
+      </div>
+      <p class="hint">Drag to set your power-unit count.</p>
+    </div>
+
+    <div class="field">
+      <label for="vehicleClass">Vehicle classification</label>
+      <select id="vehicleClass">
+        <option value="DOT Required">DOT Required</option>
+        <option value="CDL Required">CDL Required</option>
+        <option value="Non-DOT">Non-DOT</option>
+        <option value="Mixed">Mixed</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="homeState">Home state</label>
+      <select id="homeState">
+        <!-- populated by JS -->
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="driverCount">Number of drivers</label>
+      <input type="number" id="driverCount" min="1" value="5" />
+    </div>
+  </div>
+
+  <div class="step-actions">
+    <button class="btn btn-ghost" data-back>← Back</button>
+    <button class="btn btn-primary" id="step2Next">Next →</button>
+  </div>
+</section>
+
+<!-- ============================== STEP 3 — CHOOSE MODULES ============================== -->
+<section class="step" data-step="3">
+  <div class="step-header">
+    <h1>Choose Your Modules</h1>
+    <p class="lede">Pre-filtered for your freight type. Toggle on what you need, pick a tier, and watch the total update on the right.</p>
+  </div>
+
+  <div class="modules-layout">
+    <div class="modules-grid" id="modulesGrid">
+      <!-- populated by JS -->
+    </div>
+    <aside class="price-sticky" id="priceSticky">
+      <div class="price-card">
+        <div class="price-label">Estimated monthly total</div>
+        <div class="price-amount" id="priceAmount">$0</div>
+        <div class="price-sub" id="priceSub">0 modules selected</div>
+        <hr class="price-hr" />
+        <ul class="price-breakdown" id="priceBreakdown"></ul>
+      </div>
+    </aside>
+  </div>
+
+  <div class="step-actions">
+    <button class="btn btn-ghost" data-back>← Back</button>
+    <button class="btn btn-primary" id="step3Next" disabled>Next →</button>
+  </div>
+</section>
+
+<!-- ============================== STEP 4 — CONFIGURE EACH MODULE ============================== -->
+<section class="step" data-step="4">
+  <div class="step-header">
+    <h1>Configure Each Module</h1>
+    <p class="lede">A couple of quick questions per module. You can change all of this later.</p>
+  </div>
+
+  <div class="config-stack" id="configStack">
+    <!-- populated by JS based on selected modules -->
+  </div>
+
+  <div class="step-actions">
+    <button class="btn btn-ghost" data-back>← Back</button>
+    <button class="btn btn-primary" id="step4Next">Next →</button>
+  </div>
+</section>
+
+<!-- ============================== STEP 5 — DOMAIN & BRANDING ============================== -->
+<section class="step" data-step="5">
+  <div class="step-header">
+    <h1>Domain & Branding</h1>
+    <p class="lede">Your portal lives at a subdomain we set up for you. Bring your own domain later if you want.</p>
+  </div>
+
+  <div class="form-grid">
+    <div class="field full">
+      <label for="subdomain">Subdomain</label>
+      <div class="domain-row">
+        <input type="text" id="subdomain" placeholder="yourfleet" autocomplete="off" />
+        <span class="domain-suffix">.gigasphere.app</span>
+      </div>
+      <p class="hint">Preview: <span id="subdomainPreview" class="preview-link">yourfleet.gigasphere.app</span></p>
+    </div>
+
+    <div class="field full">
+      <label class="toggle-row">
+        <input type="checkbox" id="customDomainToggle" />
+        <span>Add a custom domain</span>
+      </label>
+      <input type="text" id="customDomain" placeholder="yourcompany.com" class="hidden" />
+    </div>
+
+    <div class="field">
+      <label>Upload your logo <span class="muted">(optional)</span></label>
+      <div class="upload-box">
+        <span class="upload-icon">⬆</span>
+        <span>Drop logo here or <em>browse</em></span>
+        <span class="upload-hint">PNG or SVG, transparent background</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Accent color</label>
+      <div class="color-row" id="colorRow">
+        <button type="button" class="swatch active" data-color="#e8a020" style="background:#e8a020"></button>
+        <button type="button" class="swatch" data-color="#2a5a8c" style="background:#2a5a8c"></button>
+        <button type="button" class="swatch" data-color="#4a8c52" style="background:#4a8c52"></button>
+        <button type="button" class="swatch" data-color="#b03a3a" style="background:#b03a3a"></button>
+        <button type="button" class="swatch" data-color="#7a4ab0" style="background:#7a4ab0"></button>
+        <button type="button" class="swatch" data-color="#c8881a" style="background:#c8881a"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-actions">
+    <button class="btn btn-ghost" data-back>← Back</button>
+    <button class="btn btn-primary" id="step5Next">Next →</button>
+  </div>
+</section>
+
+<!-- ============================== STEP 6 — REVIEW & PRICE ============================== -->
+<section class="step" data-step="6">
+  <div class="step-header">
+    <h1>Review &amp; Price</h1>
+    <p class="lede">Here's everything you configured. Switch to annual for 15% off.</p>
+  </div>
+
+  <div class="review-layout">
+    <div class="review-summary" id="reviewSummary"></div>
+    <aside class="review-price">
+      <div class="billing-toggle">
+        <button class="bt-opt active" data-billing="monthly">Monthly</button>
+        <button class="bt-opt" data-billing="annual">Annual <span class="save-pill">Save 15%</span></button>
+      </div>
+      <div class="big-price">
+        <span class="big-price-amount" id="bigPriceAmount">$0</span>
+        <span class="big-price-period" id="bigPricePeriod">/ month</span>
+      </div>
+      <div class="big-price-sub" id="bigPriceSub"></div>
+      <div class="badges">
+        <div class="badge">✓ 7-day free trial — card required</div>
+        <div class="badge">✓ 30-day money-back guarantee</div>
+        <div class="badge muted-badge">ⓘ Domain registration is non-refundable</div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="step-actions">
+    <button class="btn btn-ghost" data-back>← Back</button>
+    <button class="btn btn-primary" id="step6Next">See My Sandbox →</button>
+  </div>
+</section>
+
+<!-- ============================== STEP 7 — SANDBOX PREVIEW ============================== -->
+<section class="step step-full" data-step="7">
+  <div class="step-header">
+    <h1>Your Sandbox Preview</h1>
+    <p class="lede">A demo of your portal with sample data. This is exactly what you'll see — minus the placeholders.</p>
+  </div>
+
+  <div class="sandbox-frame" id="sandboxFrame">
+    <!-- mock dashboard injected by JS -->
+  </div>
+
+  <div class="step-actions">
+    <button class="btn btn-ghost" data-back>← Back</button>
+    <button class="btn btn-primary" id="step7Next">I Like What I See →</button>
+  </div>
+</section>
+
+<!-- ============================== STEP 8 — CONVERT ============================== -->
+<section class="step step-convert" data-step="8">
+  <div class="step-header">
+    <h1>Ready to go live?</h1>
+    <p class="lede">Your configuration is saved. Start your 7-day free trial and replace the demo data with your real operation.</p>
+  </div>
+
+  <div class="convert-card">
+    <div class="convert-summary" id="convertSummary"></div>
+
+    <div class="convert-ctas">
+      <a class="btn btn-primary btn-xl" href="https://calendly.com/agbexar-gigasphere/product-walkthrough-giga-sphere-os" target="_blank" rel="noopener">Start Free Trial</a>
+      <button class="btn btn-ghost" id="downloadConfig">Download your configuration</button>
+      <a class="btn btn-link" href="https://calendly.com/agbexar-gigasphere/product-walkthrough-giga-sphere-os" target="_blank" rel="noopener">Talk to our team</a>
+    </div>
+  </div>
+
+  <div class="step-actions">
+    <button class="btn btn-ghost" data-back>← Back</button>
+    <div></div>
+  </div>
+</section>
+
+</main>
+
+<footer class="app-footer">
+  <span>© Giga-Sphere OS, LLC</span>
+  <span class="dot">•</span>
+  <span>Powered by Giga-Sphere</span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
