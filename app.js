@@ -1,844 +1,652 @@
 /* ==========================================================================
-   GigaBuild — Configurator Logic
-   - Single-page, 8-step flow
-   - All state lives in window.state (no backend)
+   Giga-Build — 9-step trucker-native configurator
+   All state in one object. No backend, no framework, no build step.
    ========================================================================== */
 
-// ---------------- STATE ----------------
-const state = {
-  step: 1,
-  freightType: null,
-  fleetSize: 5,
-  vehicleClass: 'DOT Required',
-  homeState: 'TX',
-  driverCount: 5,
-  modules: {},     // { moduleId: { enabled: bool, tier: 'basic'|'pro'|'enterprise' } }
-  moduleConfig: {}, // { moduleId: { fieldKey: value } }
-  subdomain: '',
-  customDomainEnabled: false,
-  customDomain: '',
-  accentColor: '#e8a020',
-  billing: 'monthly'
-};
+(() => {
+  'use strict';
 
-// ---------------- DATA ----------------
-const FREIGHT_TYPES = [
-  { id: 'straight',  name: 'Straight Truck / Expedite', icon: '🚚' },
-  { id: 'dryvan',    name: 'Dry Van (Long Haul)',       icon: '🚛' },
-  { id: 'reefer',    name: 'Refrigerated (Reefer)',     icon: '🧊' },
-  { id: 'flatbed',   name: 'Flatbed / Heavy Haul',      icon: '🏗️' },
-  { id: 'tanker',    name: 'Tanker / Fuel',             icon: '🛢️' },
-  { id: 'hazmat',    name: 'Hazmat',                    icon: '☣️' },
-  { id: 'dump',      name: 'Dump Truck / Sand & Gravel',icon: '⛏️' },
-  { id: 'hotshot',   name: 'Hotshot',                   icon: '⚡' },
-  { id: 'autohaul',  name: 'Auto Hauler',               icon: '🚗' },
-  { id: 'intermodal',name: 'Intermodal / Drayage',      icon: '🚢' },
-  { id: 'lastmile',  name: 'Last-Mile Delivery',        icon: '📦' },
-  { id: 'mixed',     name: 'Mixed / Other',             icon: '🔀' }
-];
+  /* -------------------- STATIC DATA -------------------- */
 
-const US_STATES = [
-  ['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],
-  ['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['DC','District of Columbia'],
-  ['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],
-  ['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],
-  ['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],
-  ['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],
-  ['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],
-  ['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],
-  ['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],
-  ['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],
-  ['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']
-];
+  const FREIGHT_TYPES = [
+    { id: 'daycab',    name: 'Day Cab / Straight Truck' },
+    { id: 'sleeper',   name: 'Sleeper / OTR' },
+    { id: 'flatbed',   name: 'Flatbed' },
+    { id: 'reefer',    name: 'Reefer' },
+    { id: 'tanker',    name: 'Tanker' },
+    { id: 'dump',      name: 'Dump Truck' },
+    { id: 'hotshot',   name: 'Hotshot' },
+    { id: 'box',       name: 'Box Truck' },
+    { id: 'autohaul',  name: 'Auto Hauler' },
+    { id: 'other',     name: 'Other' },
+  ];
 
-const MODULES = [
-  {
-    id: 'gigabooks', name: 'GigaBooks', icon: '📒',
-    desc: 'Accounting + tax engine built for trucking. P&L, schedule C, IFTA-ready ledgers.',
-    tiers: { basic: 49, pro: 99, enterprise: 199 },
-    recommendedFor: 'all'
-  },
-  {
-    id: 'fleet', name: 'Fleet Management', icon: '🛻',
-    desc: 'Truck records, maintenance scheduling, asset utilization.',
-    tiers: { basic: 39, pro: 79, enterprise: 159 },
-    recommendedFor: 'all'
-  },
-  {
-    id: 'compliance', name: 'Compliance Engine', icon: '🛡️',
-    desc: 'DOT, FMCSA, DVIR, log audits, endorsement tracking, expiration alerts.',
-    tiers: { basic: 59, pro: 119, enterprise: 239 },
-    recommendedFor: ['straight','dryvan','reefer','flatbed','tanker','hazmat','dump','hotshot','autohaul','intermodal','mixed']
-  },
-  {
-    id: 'ifta', name: 'IFTA Reporting', icon: '⛽',
-    desc: 'Quarterly fuel tax filings with auto-generated state-by-state mileage.',
-    tiers: { basic: 29, pro: 59, enterprise: 119 },
-    recommendedFor: ['straight','dryvan','reefer','flatbed','tanker','hazmat','dump','autohaul','intermodal','mixed']
-  },
-  {
-    id: 'payroll', name: 'Payroll & HR', icon: '💼',
-    desc: 'Driver pay (per-mile, hourly, percentage), settlement statements, W-2 / 1099.',
-    tiers: { basic: 39, pro: 79, enterprise: 149 },
-    recommendedFor: 'all'
-  },
-  {
-    id: 'onboarding', name: 'Driver Onboarding', icon: '📝',
-    desc: 'Application, MVR, drug screen, DQ file, e-sign — all in one workflow.',
-    tiers: { basic: 29, pro: 69, enterprise: 129 },
-    recommendedFor: 'all'
-  },
-  {
-    id: 'assets', name: 'Asset Manager', icon: '📦',
-    desc: 'Trailers, ELDs, chains, straps. Track location, condition, depreciation.',
-    tiers: { basic: 25, pro: 55, enterprise: 99 },
-    recommendedFor: ['flatbed','reefer','tanker','hazmat','dump','autohaul','intermodal','mixed']
-  },
-  {
-    id: 'domain', name: 'Domain & Hosting', icon: '🌐',
-    desc: 'Custom domain registration, SSL, hosted tenant portal.',
-    tiers: { basic: 15, pro: 35, enterprise: 79 },
-    recommendedFor: 'all'
-  },
-  {
-    id: 'shipment', name: 'Digital Shipment Management', icon: '📑',
-    desc: 'BOL, POD, e-Shipment, signatures, attachments, chain-of-custody.',
-    tiers: { basic: 39, pro: 79, enterprise: 149 },
-    recommendedFor: ['dryvan','reefer','flatbed','tanker','hazmat','autohaul','intermodal','lastmile','mixed']
-  },
-  {
-    id: 'security', name: 'Security & Chain of Custody', icon: '🔐',
-    desc: 'Tamper-evident logs, WORM evidence, audit trail for high-value or hazmat loads.',
-    tiers: { basic: 49, pro: 99, enterprise: 199 },
-    recommendedFor: ['tanker','hazmat','autohaul','intermodal']
-  },
-  {
-    id: 'education', name: 'Compliance Education', icon: '🎓',
-    desc: 'Driver-facing courses on DOT, hazmat, hours-of-service, defensive driving.',
-    tiers: { basic: 19, pro: 39, enterprise: 79 },
-    recommendedFor: 'all'
-  }
-];
+  // Inline SVG icons — never reference external assets.
+  const FREIGHT_ICONS = {
+    daycab: `<svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="20" height="14" rx="1"/><path d="M23 14h6l4 5v5h-10z"/><circle cx="9" cy="27" r="2.5"/><circle cx="27" cy="27" r="2.5"/></svg>`,
+    sleeper: `<svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 24V12c0-1 1-2 2-2h14v14z"/><path d="M19 14h6l4 5v5H19z"/><path d="M5 14h12M5 18h12"/><circle cx="9" cy="27" r="2.5"/><circle cx="27" cy="27" r="2.5"/></svg>`,
+    flatbed: `<svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21h22"/><path d="M24 13h5l4 4v4h-9z"/><path d="M6 21V14h18v7"/><circle cx="9" cy="25" r="2.5"/><circle cx="27" cy="25" r="2.5"/></svg>`,
+    reefer:  `<svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="20" height="16" rx="1"/><path d="M23 13h6l4 5v7H23z"/><path d="M13 13v8M9 17h8M11 14l4 6M15 14l-4 6"/><circle cx="9" cy="28" r="2.5"/><circle cx="27" cy="28" r="2.5"/></svg>`,
+    tanker:  `<svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18a8 4 0 0118 0 8 4 0 01-18 0z"/><path d="M5 18v4a8 4 0 0018 0v-4"/><path d="M23 14h6l4 5v5h-9"/><circle cx="9" cy="27" r="2.5"/><circle cx="27" cy="27" r="2.5"/></svg>`,
+    dump:    `<svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22l4-10h12l4 10"/><path d="M24 18h5l4 4v3h-9"/><path d="M2 22h22"/><circle cx="9" cy="27" r="2.5"/><circle cx="27" cy="27" r="2.5"/></svg>`,
+    hotshot: `<svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22V14h10l3 3h6v5"/><path d="M16 22h12v-3"/><path d="M22 17v-3h4l2 3"/><circle cx="9" cy="25" r="2.5"/><circle cx="22" cy="25" r="2.5"/></svg>`,
+    box:     `<svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="24" height="16" rx="1"/><path d="M15 9v16M3 15h24"/><circle cx="9" cy="28" r="2.5"/><circle cx="24" cy="28" r="2.5"/></svg>`,
+    autohaul:`<svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 23h32"/><path d="M5 20l3-5h10l3 5"/><path d="M14 13l3-4h10l3 4"/><circle cx="9" cy="25" r="2"/><circle cx="20" cy="25" r="2"/><circle cx="28" cy="25" r="2"/></svg>`,
+    other:   `<svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="11"/><path d="M14 14c0-2 2-3 4-3s4 1 4 3-4 3-4 6"/><circle cx="18" cy="24" r="0.8" fill="currentColor"/></svg>`,
+  };
 
-// Per-module configuration form schemas (used in Step 4)
-const MODULE_CONFIG_SCHEMA = {
-  gigabooks: {
-    title: 'GigaBooks',
-    fields: [
-      { key: 'filingStatus', label: 'Filing status', type: 'select',
-        options: ['Single','Married filing jointly','Married filing separately','Head of household'] },
-      { key: 'entityType', label: 'Entity type', type: 'select',
-        options: ['Sole proprietorship','LLC (single-member)','LLC (multi-member)','S-Corp','C-Corp','Partnership'] },
-      { key: 'industry', label: 'Industry', type: 'select',
-        options: ['For-hire trucking','Private fleet','Owner-operator','Brokerage','Logistics / 3PL'] }
-    ]
-  },
-  fleet: {
-    title: 'Fleet Management',
-    fields: [
-      { key: 'truckTypes', label: 'Truck types', type: 'checklist',
-        options: ['Day cab','Sleeper','Straight truck','Tractor','Van','Pickup'] },
-      { key: 'maintSchedule', label: 'Maintenance schedule', type: 'select',
-        options: ['Mileage-based','Time-based','Hybrid (whichever comes first)'] }
-    ]
-  },
-  compliance: {
-    title: 'Compliance Engine',
-    fields: [
-      { key: 'endorsements', label: 'Endorsements held', type: 'checklist',
-        options: ['Hazmat (H)','Tanker (N)','Doubles/Triples (T)','Passenger (P)','School Bus (S)','X (HazMat + Tanker)'] },
-      { key: 'freightTypes', label: 'Freight types hauled', type: 'checklist',
-        options: ['General','Refrigerated','Hazmat','Heavy/Over-dimensional','Auto','Tanker (fuel)','Tanker (food)'] }
-    ]
-  },
-  ifta: {
-    title: 'IFTA Reporting',
-    fields: [
-      { key: 'baseState', label: 'Base jurisdiction', type: 'select', options: US_STATES.map(s => s[1]) },
-      { key: 'fuelType', label: 'Primary fuel type', type: 'select', options: ['Diesel','Gasoline','CNG','LNG','Biodiesel','Electric'] }
-    ]
-  },
-  payroll: {
-    title: 'Payroll & HR',
-    fields: [
-      { key: 'payModel', label: 'Driver pay model', type: 'select',
-        options: ['Per mile','Hourly','Percentage of load','Salary','Mixed'] },
-      { key: 'payCycle', label: 'Pay cycle', type: 'select',
-        options: ['Weekly','Bi-weekly','Semi-monthly','Monthly'] }
-    ]
-  },
-  onboarding: {
-    title: 'Driver Onboarding',
-    fields: [
-      { key: 'docs', label: 'Required documents', type: 'checklist',
-        options: ['CDL','Medical card','MVR','Drug screen','Road test','References'] }
-    ]
-  },
-  assets: {
-    title: 'Asset Manager',
-    fields: [
-      { key: 'assetTypes', label: 'Track these assets', type: 'checklist',
-        options: ['Trailers','ELDs','Chains/Straps','Tarps','Reefer units','Tools'] }
-    ]
-  },
-  domain: {
-    title: 'Domain & Hosting',
-    fields: [
-      { key: 'tld', label: 'Preferred TLD', type: 'select', options: ['.com','.co','.io','.net','.us','.app'] }
-    ]
-  },
-  shipment: {
-    title: 'Digital Shipment Management',
-    fields: [
-      { key: 'requireSig', label: 'Require POD signature', type: 'select', options: ['Always','When over $X value','Optional'] }
-    ]
-  },
-  security: {
-    title: 'Security & Chain of Custody',
-    fields: [
-      { key: 'evidenceLevel', label: 'Evidence retention', type: 'select', options: ['Standard (7 yrs)','Extended (10 yrs)','Indefinite (WORM)'] }
-    ]
-  },
-  education: {
-    title: 'Compliance Education',
-    fields: [
-      { key: 'courseTracks', label: 'Course tracks', type: 'checklist',
-        options: ['DOT basics','Hours-of-service','Defensive driving','Hazmat handling','Customer service'] }
-    ]
-  }
-};
+  const PAYMENT_METHODS = [
+    { id: 'permile',    title: 'Per Mile',   desc: "Earn a fixed amount per mile driven", icon: '/:\\' },
+    { id: 'percentage', title: 'Percentage', desc: "Earn a percentage of each load's value", icon: '%' },
+    { id: 'flat',       title: 'Flat Rate',  desc: 'Earn a fixed amount per load',           icon: '$' },
+  ];
 
-const TOTAL_STEPS = 8;
+  const PCT_BASES = [
+    { id: 'gross',         title: 'Gross Revenue',     desc: '% of the full load value' },
+    { id: 'afterFsc',      title: 'After Fuel Surcharge', desc: '% after fuel surcharge is deducted' },
+    { id: 'afterFscTolls', title: 'After FSC + Tolls', desc: '% after FSC and tolls are deducted — common for expediters' },
+  ];
 
-// ---------------- INIT ----------------
-document.addEventListener('DOMContentLoaded', () => {
-  buildFreightGrid();
-  buildStateDropdown();
-  bindStep1();
-  bindStep2();
-  buildModulesPlaceholder(); // populated after step 1 selection
-  bindStep3Sticky();
-  bindStep5();
-  bindBilling();
-  bindBackButtons();
-  bindStepNexts();
-  bindDownload();
-  updateProgress();
-});
+  const VEHICLE_CLASSES = ['DOT Required', 'CDL Required', 'Non-DOT', 'Mixed Fleet'];
 
-// ---------------- NAV / PROGRESS ----------------
-function goToStep(n) {
-  if (n < 1 || n > TOTAL_STEPS) return;
+  const US_STATES = [
+    'AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME',
+    'MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI',
+    'SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY',
+  ];
 
-  // Lazy-build content as we move forward
-  if (n === 3) buildModulesGrid();
-  if (n === 4) buildConfigPanels();
-  if (n === 6) buildReview();
-  if (n === 7) buildSandbox();
-  if (n === 8) buildConvertSummary();
+  // Module catalog. `recommendedFor` lists freight ids that surface the module
+  // first; 'all' means show for every operation.
+  const MODULES = [
+    {
+      id: 'gigabooks',
+      name: 'GigaBooks',
+      desc: 'Bookkeeping, tax filing, and IRS-ready reports for trucking operators.',
+      tiers: { basic: 29, pro: 79, enterprise: 149 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'fleet',
+      name: 'Fleet Management',
+      desc: 'Drivers, trucks, trailers, dispatch, and maintenance tracking.',
+      tiers: { basic: 39, pro: 99, enterprise: 199 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'compliance',
+      name: 'Compliance Engine',
+      desc: 'FMCSA, DOT, IFTA, IRP, MCS-150 — automated 50-state coverage.',
+      tiers: { basic: 49, pro: 119, enterprise: 229 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'ifta',
+      name: 'IFTA Reporting',
+      desc: 'Quarterly IFTA calculations with state-by-state mileage and fuel.',
+      tiers: { basic: 19, pro: 49, enterprise: 99 },
+      recommendedFor: ['daycab','sleeper','flatbed','reefer','tanker','dump','hotshot','box','autohaul'],
+    },
+    {
+      id: 'payroll',
+      name: 'Payroll & HR',
+      desc: 'Driver pay (per mile, %, flat), settlements, 1099s, W-2s.',
+      tiers: { basic: 29, pro: 79, enterprise: 149 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'onboarding',
+      name: 'Driver Onboarding',
+      desc: 'DQ files, drug & alcohol clearinghouse, MVRs, contract e-sign.',
+      tiers: { basic: 19, pro: 59, enterprise: 119 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'hazmat',
+      name: 'Hazmat Compliance',
+      desc: 'Hazmat manifest generation, placarding rules, route restrictions.',
+      tiers: { basic: 39, pro: 89, enterprise: 169 },
+      recommendedFor: ['tanker'],
+    },
+    {
+      id: 'temp',
+      name: 'Temperature Logs',
+      desc: 'Reefer audit trail, temp alerts, FSMA-ready cold chain records.',
+      tiers: { basic: 25, pro: 65, enterprise: 119 },
+      recommendedFor: ['reefer'],
+    },
+    {
+      id: 'securement',
+      name: 'Load Securement Logs',
+      desc: 'Chains, straps, photos — proof-of-securement for every flat load.',
+      tiers: { basic: 19, pro: 49, enterprise: 99 },
+      recommendedFor: ['flatbed','autohaul'],
+    },
+    {
+      id: 'shipment',
+      name: 'Digital Shipment Mgmt',
+      desc: 'eBOL, POD capture, customer portal, detention tracking.',
+      tiers: { basic: 29, pro: 79, enterprise: 149 },
+      recommendedFor: ['all'],
+    },
+  ];
 
-  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-  const target = document.querySelector(`.step[data-step="${n}"]`);
-  if (target) target.classList.add('active');
+  const TIERS = ['basic','pro','enterprise'];
+  const TIER_LABELS = { basic: 'Basic', pro: 'Pro', enterprise: 'Enterprise' };
 
-  state.step = n;
-  document.getElementById('stepIndicator').textContent = `Step ${n} of ${TOTAL_STEPS}`;
-  updateProgress();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+  /* -------------------- STATE -------------------- */
 
-function updateProgress() {
-  const pct = (state.step / TOTAL_STEPS) * 100;
-  document.getElementById('progressFill').style.width = `${pct}%`;
-}
+  const state = window.gigaBuild = {
+    step: 1,
 
-function bindBackButtons() {
-  document.querySelectorAll('[data-back]').forEach(btn => {
-    btn.addEventListener('click', () => goToStep(state.step - 1));
-  });
-}
+    // Step 2
+    fullName: '',
+    companyName: '',
 
-function bindStepNexts() {
-  document.getElementById('step1Next').addEventListener('click', () => goToStep(2));
-  document.getElementById('step2Next').addEventListener('click', () => {
-    captureStep2();
-    goToStep(3);
-  });
-  document.getElementById('step3Next').addEventListener('click', () => goToStep(4));
-  document.getElementById('step4Next').addEventListener('click', () => {
-    captureStep4();
-    goToStep(5);
-  });
-  document.getElementById('step5Next').addEventListener('click', () => {
-    captureStep5();
-    goToStep(6);
-  });
-  document.getElementById('step6Next').addEventListener('click', () => goToStep(7));
-  document.getElementById('step7Next').addEventListener('click', () => goToStep(8));
-}
+    // Step 3
+    freightType: null,
 
-// ---------------- STEP 1 — FREIGHT ----------------
-function buildFreightGrid() {
-  const grid = document.getElementById('freightGrid');
-  grid.innerHTML = FREIGHT_TYPES.map(f => `
-    <div class="freight-card" data-freight="${f.id}">
-      <span class="freight-icon">${f.icon}</span>
-      <span class="freight-name">${f.name}</span>
-    </div>
-  `).join('');
-}
+    // Step 4
+    paymentMethod: null,
+    ratePerMile: '',
+    percentage: '',
+    pctBase: null,
+    flatRate: '',
 
-function bindStep1() {
-  const grid = document.getElementById('freightGrid');
-  const nextBtn = document.getElementById('step1Next');
-  grid.addEventListener('click', (e) => {
-    const card = e.target.closest('.freight-card');
-    if (!card) return;
-    grid.querySelectorAll('.freight-card').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-    state.freightType = card.dataset.freight;
-    nextBtn.disabled = false;
-  });
-}
+    // Step 5
+    avgMpg: '',
+    weeklyFixed: '',
 
-// ---------------- STEP 2 — FLEET ----------------
-function buildStateDropdown() {
-  const sel = document.getElementById('homeState');
-  sel.innerHTML = US_STATES.map(([code,name]) =>
-    `<option value="${code}"${code==='TX'?' selected':''}>${name}</option>`
-  ).join('');
-}
+    // Step 6
+    fleetSize: 1,
+    homeState: 'TX',
+    vehicleClass: 'DOT Required',
+    driverCount: 1,
 
-function bindStep2() {
-  const fs = document.getElementById('fleetSize');
-  const out = document.getElementById('fleetSizeOut');
-  fs.addEventListener('input', () => { out.textContent = fs.value; });
-}
+    // Step 7
+    modules: {}, // id -> { enabled, tier }
 
-function captureStep2() {
-  state.fleetSize    = parseInt(document.getElementById('fleetSize').value, 10);
-  state.vehicleClass = document.getElementById('vehicleClass').value;
-  state.homeState    = document.getElementById('homeState').value;
-  state.driverCount  = parseInt(document.getElementById('driverCount').value, 10) || 1;
-}
+    // Step 8
+    billing: 'monthly',
+  };
 
-// ---------------- STEP 3 — MODULES ----------------
-function buildModulesPlaceholder() {
-  // Wait — only build once we know freight type
-}
+  const TOTAL_STEPS = 9;
+  const VISIBLE_PROGRESS_STEPS = 7; // steps 2..8 count as "Step 1..7 of 7"
 
-function isRecommended(m) {
-  if (m.recommendedFor === 'all') return true;
-  return Array.isArray(m.recommendedFor) && m.recommendedFor.includes(state.freightType);
-}
+  /* -------------------- HELPERS -------------------- */
 
-function buildModulesGrid() {
-  const grid = document.getElementById('modulesGrid');
+  const $  = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-  // Sort: recommended first
-  const sorted = [...MODULES].sort((a,b) => {
-    const ar = isRecommended(a) ? 0 : 1;
-    const br = isRecommended(b) ? 0 : 1;
-    return ar - br;
-  });
+  const money = (n) => {
+    const safe = Number.isFinite(n) ? n : 0;
+    return '$' + safe.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  };
 
-  grid.innerHTML = sorted.map(m => {
-    const recommended = isRecommended(m);
-    return `
-    <div class="module-card${recommended ? ' recommended' : ''}" data-module="${m.id}">
-      <div class="module-head">
-        <h3 class="module-title"><span class="module-icon">${m.icon}</span>${m.name}</h3>
-        ${recommended ? '<span class="module-recommended-pill">Recommended</span>' : ''}
-      </div>
-      <p class="module-desc">${m.desc}</p>
-      <div class="tier-row" data-tiers="${m.id}">
-        <button type="button" class="tier-btn" data-tier="basic">
-          <span class="tier-name">Basic</span><span class="tier-price">$${m.tiers.basic}/mo</span>
-        </button>
-        <button type="button" class="tier-btn selected" data-tier="pro">
-          <span class="tier-name">Pro</span><span class="tier-price">$${m.tiers.pro}/mo</span>
-        </button>
-        <button type="button" class="tier-btn" data-tier="enterprise">
-          <span class="tier-name">Enterprise</span><span class="tier-price">$${m.tiers.enterprise}/mo</span>
-        </button>
-      </div>
-      <label class="module-toggle">
-        <input type="checkbox" class="module-enable" ${recommended ? 'checked' : ''}>
-        <span>Add this module</span>
-      </label>
-    </div>`;
-  }).join('');
+  /* -------------------- NAVIGATION -------------------- */
 
-  // Seed state for any module already toggled on
-  sorted.forEach(m => {
-    if (isRecommended(m) && !state.modules[m.id]) {
-      state.modules[m.id] = { enabled: true, tier: 'pro' };
-    } else if (!state.modules[m.id]) {
-      state.modules[m.id] = { enabled: false, tier: 'pro' };
+  function show(stepNum) {
+    state.step = stepNum;
+    $$('.step').forEach((el) => {
+      const n = Number(el.dataset.step);
+      el.classList.toggle('active', n === stepNum);
+    });
+
+    // Header + progress only show for steps 2..8
+    const showChrome = stepNum >= 2 && stepNum <= 8;
+    $('#appHeader').hidden = !showChrome;
+    $('#progressWrap').hidden = !showChrome;
+
+    if (showChrome) {
+      const sec = $(`.step[data-step="${stepNum}"]`);
+      const num = Number(sec.dataset.stepNum);
+      $('#stepIndicator').textContent = `Step ${num} of ${VISIBLE_PROGRESS_STEPS}`;
+      $('#stepName').textContent = sec.dataset.stepLabel || '';
+      $('#progressFill').style.width = `${(num / VISIBLE_PROGRESS_STEPS) * 100}%`;
     }
-  });
-  syncModuleCardActive();
-  recalcPrice();
 
-  // Wire interactions
-  grid.querySelectorAll('.module-card').forEach(card => {
-    const id = card.dataset.module;
+    // Sticky price bar only on modules step
+    const sticky = $('#modulePriceBar');
+    if (sticky) sticky.classList.toggle('visible', stepNum === 7);
 
-    card.querySelectorAll('.tier-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        card.querySelectorAll('.tier-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        state.modules[id].tier = btn.dataset.tier;
-        // Selecting a tier turns the module on
-        const cb = card.querySelector('.module-enable');
-        if (!cb.checked) { cb.checked = true; state.modules[id].enabled = true; }
-        syncModuleCardActive();
-        recalcPrice();
+    // Re-render anything step-specific
+    if (stepNum === 7) renderModules();
+    if (stepNum === 8) renderReview();
+    if (stepNum === 9) renderDashboard();
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function canAdvance(fromStep) {
+    switch (fromStep) {
+      case 2: return state.fullName.trim().length > 0;
+      case 3: return !!state.freightType;
+      case 4: {
+        if (!state.paymentMethod) return false;
+        if (state.paymentMethod === 'percentage' && !state.pctBase) return false;
+        return true;
+      }
+      case 7: return Object.values(state.modules).some((m) => m.enabled);
+      default: return true;
+    }
+  }
+
+  function updateNextEnabled() {
+    const map = {
+      2: $('#step2Next'),
+      3: $('#step3Next'),
+      4: $('#step4Next'),
+      7: $('#step7Next'),
+    };
+    Object.entries(map).forEach(([s, btn]) => {
+      if (!btn) return;
+      btn.disabled = !canAdvance(Number(s));
+    });
+  }
+
+  function next() {
+    if (!canAdvance(state.step)) return;
+    if (state.step < TOTAL_STEPS) show(state.step + 1);
+  }
+  function back() {
+    if (state.step > 1) show(state.step - 1);
+  }
+
+  /* -------------------- STEP 3: FREIGHT GRID -------------------- */
+
+  function renderFreightGrid() {
+    const grid = $('#freightGrid');
+    grid.innerHTML = FREIGHT_TYPES.map((f) => `
+      <button type="button" class="freight-card" data-freight="${f.id}">
+        <span class="fc-icon">${FREIGHT_ICONS[f.id] || ''}</span>
+        <span class="fc-name">${f.name}</span>
+        <span class="fc-check">✓</span>
+      </button>
+    `).join('');
+
+    $$('.freight-card', grid).forEach((card) => {
+      card.addEventListener('click', () => {
+        state.freightType = card.dataset.freight;
+        $$('.freight-card', grid).forEach((c) => c.classList.toggle('active', c === card));
+        // Pre-toggle recommended modules on first freight selection so users
+        // see a sensible starter stack on Step 7.
+        seedRecommendedModules();
+        updateNextEnabled();
+      });
+    });
+  }
+
+  /* -------------------- STEP 4: PAYMENT -------------------- */
+
+  function renderPaymentList() {
+    const list = $('#payList');
+    list.innerHTML = PAYMENT_METHODS.map((p) => `
+      <button type="button" class="pay-card" data-pay="${p.id}">
+        <span class="pc-icon">${p.icon}</span>
+        <span class="pc-text">
+          <span class="pc-title">${p.title}</span>
+          <span class="pc-desc">${p.desc}</span>
+        </span>
+      </button>
+    `).join('');
+
+    $$('.pay-card', list).forEach((card) => {
+      card.addEventListener('click', () => {
+        state.paymentMethod = card.dataset.pay;
+        $$('.pay-card', list).forEach((c) => c.classList.toggle('active', c === card));
+        renderPctBase();
+        toggleConditionals();
+        updateNextEnabled();
       });
     });
 
-    card.querySelector('.module-enable').addEventListener('change', (e) => {
-      state.modules[id].enabled = e.target.checked;
-      syncModuleCardActive();
-      recalcPrice();
+    renderPctBase();
+  }
+
+  function renderPctBase() {
+    const list = $('#pctBaseList');
+    list.innerHTML = PCT_BASES.map((b) => `
+      <button type="button" class="pct-base-option ${state.pctBase === b.id ? 'active' : ''}" data-base="${b.id}">
+        <div class="pbo-title">${b.title}</div>
+        <div class="pbo-desc">${b.desc}</div>
+      </button>
+    `).join('');
+
+    $$('.pct-base-option', list).forEach((opt) => {
+      opt.addEventListener('click', () => {
+        state.pctBase = opt.dataset.base;
+        $$('.pct-base-option', list).forEach((o) => o.classList.toggle('active', o === opt));
+        updateNextEnabled();
+      });
     });
-  });
-}
-
-function syncModuleCardActive() {
-  document.querySelectorAll('.module-card').forEach(card => {
-    const id = card.dataset.module;
-    card.classList.toggle('active', !!state.modules[id]?.enabled);
-  });
-}
-
-function recalcPrice() {
-  const breakdown = [];
-  let total = 0;
-  MODULES.forEach(m => {
-    const s = state.modules[m.id];
-    if (s && s.enabled) {
-      const price = m.tiers[s.tier];
-      total += price;
-      breakdown.push({ name: m.name, tier: s.tier, price });
-    }
-  });
-
-  const fmt = (n) => '$' + n.toLocaleString('en-US');
-
-  document.getElementById('priceAmount').textContent = fmt(total);
-  document.getElementById('priceSub').textContent =
-    breakdown.length === 0
-      ? '0 modules selected'
-      : `${breakdown.length} module${breakdown.length===1?'':'s'} • per month`;
-
-  document.getElementById('priceBreakdown').innerHTML = breakdown.map(b =>
-    `<li><span>${b.name} <em style="color:var(--muted)">(${b.tier})</em></span><span>${fmt(b.price)}</span></li>`
-  ).join('');
-
-  document.getElementById('step3Next').disabled = breakdown.length === 0;
-}
-
-function bindStep3Sticky() {
-  // (sticky positioning handled in CSS)
-}
-
-// ---------------- STEP 4 — CONFIGURE ----------------
-function buildConfigPanels() {
-  const stack = document.getElementById('configStack');
-  const selected = MODULES.filter(m => state.modules[m.id]?.enabled);
-
-  if (selected.length === 0) {
-    stack.innerHTML = `<div class="config-empty">No modules selected. Go back and pick at least one.</div>`;
-    return;
   }
 
-  stack.innerHTML = selected.map(m => {
-    const schema = MODULE_CONFIG_SCHEMA[m.id];
-    if (!schema) return '';
-    return `
-      <div class="config-panel" data-module="${m.id}">
-        <h3 class="config-panel-title"><span>${m.icon}</span>${schema.title}</h3>
-        <div class="config-fields">
-          ${schema.fields.map(f => renderField(m.id, f)).join('')}
-        </div>
-      </div>`;
-  }).join('');
+  function toggleConditionals() {
+    $('#condPerMile').hidden    = state.paymentMethod !== 'permile';
+    $('#condPercentage').hidden = state.paymentMethod !== 'percentage';
+    $('#condFlat').hidden       = state.paymentMethod !== 'flat';
+  }
 
-  // Bind checklist pill toggling for visual feedback
-  stack.querySelectorAll('.chk-pill input').forEach(cb => {
-    cb.addEventListener('change', () => {
-      cb.closest('.chk-pill').classList.toggle('checked', cb.checked);
+  /* -------------------- STEP 6: FLEET -------------------- */
+
+  function renderHomeStateDropdown() {
+    const select = $('#homeState');
+    select.innerHTML = US_STATES.map((s) => `<option value="${s}" ${s === state.homeState ? 'selected' : ''}>${s}</option>`).join('');
+    select.addEventListener('change', () => { state.homeState = select.value; });
+  }
+
+  function renderVehicleClass() {
+    const list = $('#vehicleClassList');
+    list.innerHTML = VEHICLE_CLASSES.map((v) => `
+      <button type="button" class="seg ${state.vehicleClass === v ? 'active' : ''}" data-vc="${v}">${v}</button>
+    `).join('');
+    $$('.seg', list).forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.vehicleClass = btn.dataset.vc;
+        $$('.seg', list).forEach((b) => b.classList.toggle('active', b === btn));
+      });
     });
-  });
-}
-
-function renderField(modId, f) {
-  const id = `cfg-${modId}-${f.key}`;
-  if (f.type === 'select') {
-    return `
-      <div class="field">
-        <label for="${id}">${f.label}</label>
-        <select id="${id}" data-modkey="${modId}|${f.key}">
-          ${f.options.map(o => `<option>${o}</option>`).join('')}
-        </select>
-      </div>`;
   }
-  if (f.type === 'checklist') {
-    return `
-      <div class="field full">
-        <label>${f.label}</label>
-        <div class="checkbox-list" data-modkey="${modId}|${f.key}">
-          ${f.options.map((o,i) => `
-            <label class="chk-pill">
-              <input type="checkbox" value="${o}"> ${o}
-            </label>
-          `).join('')}
-        </div>
-      </div>`;
-  }
-  return '';
-}
 
-function captureStep4() {
-  document.querySelectorAll('#configStack [data-modkey]').forEach(el => {
-    const [modId, key] = el.dataset.modkey.split('|');
-    state.moduleConfig[modId] = state.moduleConfig[modId] || {};
-    if (el.tagName === 'SELECT') {
-      state.moduleConfig[modId][key] = el.value;
-    } else {
-      const vals = Array.from(el.querySelectorAll('input:checked')).map(i => i.value);
-      state.moduleConfig[modId][key] = vals;
-    }
-  });
-}
-
-// ---------------- STEP 5 — DOMAIN / BRANDING ----------------
-function bindStep5() {
-  const sd = document.getElementById('subdomain');
-  const prev = document.getElementById('subdomainPreview');
-  sd.addEventListener('input', () => {
-    const v = sd.value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'') || 'yourfleet';
-    sd.value = sd.value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
-    prev.textContent = `${v}.gigasphere.app`;
-  });
-
-  const toggle = document.getElementById('customDomainToggle');
-  const cd = document.getElementById('customDomain');
-  toggle.addEventListener('change', () => cd.classList.toggle('hidden', !toggle.checked));
-
-  document.getElementById('colorRow').addEventListener('click', (e) => {
-    const sw = e.target.closest('.swatch');
-    if (!sw) return;
-    document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
-    sw.classList.add('active');
-    state.accentColor = sw.dataset.color;
-  });
-}
-
-function captureStep5() {
-  state.subdomain = (document.getElementById('subdomain').value || 'yourfleet').trim();
-  state.customDomainEnabled = document.getElementById('customDomainToggle').checked;
-  state.customDomain = document.getElementById('customDomain').value.trim();
-}
-
-// ---------------- STEP 6 — REVIEW ----------------
-function getActiveModules() {
-  return MODULES.filter(m => state.modules[m.id]?.enabled);
-}
-
-function monthlyTotal() {
-  return getActiveModules().reduce((sum, m) => sum + m.tiers[state.modules[m.id].tier], 0);
-}
-
-function buildReview() {
-  const freightName = FREIGHT_TYPES.find(f => f.id === state.freightType)?.name || '—';
-  const stateName   = US_STATES.find(([c]) => c === state.homeState)?.[1] || state.homeState;
-  const mods = getActiveModules();
-
-  const summary = `
-    <div class="review-block">
-      <h3>Operation</h3>
-      <div class="review-row"><span class="review-key">Freight type</span><span class="review-val">${freightName}</span></div>
-      <div class="review-row"><span class="review-key">Fleet size</span><span class="review-val">${state.fleetSize} truck${state.fleetSize===1?'':'s'}</span></div>
-      <div class="review-row"><span class="review-key">Drivers</span><span class="review-val">${state.driverCount}</span></div>
-      <div class="review-row"><span class="review-key">Vehicle classification</span><span class="review-val">${state.vehicleClass}</span></div>
-      <div class="review-row"><span class="review-key">Home state</span><span class="review-val">${stateName}</span></div>
-    </div>
-
-    <div class="review-block">
-      <h3>Modules (${mods.length})</h3>
-      ${mods.map(m => `
-        <div class="review-row">
-          <span class="review-key">${m.icon} ${m.name} <em style="color:var(--muted)">(${state.modules[m.id].tier})</em></span>
-          <span class="review-val">$${m.tiers[state.modules[m.id].tier]}/mo</span>
-        </div>
-      `).join('') || '<div class="review-row"><span class="review-key">No modules selected</span><span></span></div>'}
-    </div>
-
-    <div class="review-block">
-      <h3>Domain &amp; Branding</h3>
-      <div class="review-row"><span class="review-key">Subdomain</span><span class="review-val">${state.subdomain || 'yourfleet'}.gigasphere.app</span></div>
-      ${state.customDomainEnabled && state.customDomain
-        ? `<div class="review-row"><span class="review-key">Custom domain</span><span class="review-val">${state.customDomain}</span></div>`
-        : ''}
-      <div class="review-row">
-        <span class="review-key">Accent color</span>
-        <span class="review-val"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${state.accentColor};vertical-align:middle;margin-right:6px;"></span>${state.accentColor}</span>
-      </div>
-    </div>
-  `;
-  document.getElementById('reviewSummary').innerHTML = summary;
-  updateBigPrice();
-}
-
-function bindBilling() {
-  document.querySelectorAll('.bt-opt').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.bt-opt').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      state.billing = btn.dataset.billing;
-      updateBigPrice();
+  function wireFleetInputs() {
+    const slider = $('#fleetSize');
+    const read = $('#fleetSizeRead');
+    slider.value = state.fleetSize;
+    read.textContent = state.fleetSize;
+    slider.addEventListener('input', () => {
+      state.fleetSize = Number(slider.value);
+      read.textContent = state.fleetSize;
     });
-  });
-}
 
-function updateBigPrice() {
-  const monthly = monthlyTotal();
-  const fmt = (n) => '$' + Math.round(n).toLocaleString('en-US');
-  if (state.billing === 'annual') {
-    const annualMonthly = monthly * 0.85;
-    document.getElementById('bigPriceAmount').textContent = fmt(annualMonthly);
-    document.getElementById('bigPricePeriod').textContent = '/ month';
-    document.getElementById('bigPriceSub').textContent =
-      `Billed annually at ${fmt(annualMonthly * 12)} — you save ${fmt(monthly * 12 * 0.15)}/yr`;
-  } else {
-    document.getElementById('bigPriceAmount').textContent = fmt(monthly);
-    document.getElementById('bigPricePeriod').textContent = '/ month';
-    document.getElementById('bigPriceSub').textContent = 'Billed monthly. Cancel anytime.';
-  }
-}
-
-// ---------------- STEP 7 — SANDBOX PREVIEW ----------------
-function buildSandbox() {
-  const frame = document.getElementById('sandboxFrame');
-  const mods = getActiveModules();
-  const subdomain = state.subdomain || 'yourfleet';
-  const accent = state.accentColor;
-
-  const navItems = [
-    { label: 'Dashboard', icon: '🏠', always: true },
-    ...mods.map(m => ({ label: m.name, icon: m.icon }))
-  ];
-
-  // Sample data
-  const fakeDrivers = [
-    { name: 'J. Martinez', truck: 'T-201', status: 'On duty',   miles: 412 },
-    { name: 'R. Thompson', truck: 'T-204', status: 'Off duty',  miles: 0   },
-    { name: 'D. Nguyen',   truck: 'T-207', status: 'On duty',   miles: 318 },
-    { name: 'A. Patel',    truck: 'T-209', status: 'Available', miles: 0   },
-    { name: 'M. Foster',   truck: 'T-212', status: 'On duty',   miles: 287 }
-  ];
-
-  const fakeTrucks = [
-    { unit: 'T-201', year: 2022, make: 'Freightliner', miles: '218,402', next: 'PM-B in 1,200 mi' },
-    { unit: 'T-204', year: 2021, make: 'Kenworth',     miles: '294,118', next: 'DOT inspection 2026-06-04' },
-    { unit: 'T-207', year: 2023, make: 'Peterbilt',    miles: '142,001', next: 'PM-A in 4,800 mi' },
-    { unit: 'T-209', year: 2020, make: 'Volvo',        miles: '388,750', next: 'Brake job overdue' }
-  ];
-
-  let mainHtml = `
-    <div class="sb-section">
-      <h3>Hello, Your Fleet Co</h3>
-      <div class="kpi-row">
-        <div class="kpi"><div class="kpi-label">Fleet size</div><div class="kpi-value">${state.fleetSize}</div></div>
-        <div class="kpi"><div class="kpi-label">Drivers</div><div class="kpi-value">${state.driverCount}</div></div>
-        <div class="kpi"><div class="kpi-label">On duty now</div><div class="kpi-value good">${Math.min(3, state.driverCount)}</div></div>
-        <div class="kpi"><div class="kpi-label">Alerts</div><div class="kpi-value warn">2</div></div>
-      </div>
-    </div>
-  `;
-
-  // GigaBooks → mini P&L
-  if (state.modules.gigabooks?.enabled) {
-    mainHtml += `
-      <div class="sb-section">
-        <h3>📒 GigaBooks — April P&amp;L</h3>
-        <div class="kpi" style="padding:18px;">
-          <div class="pnl-row"><span>Revenue</span><span>$ 184,250</span></div>
-          <div class="pnl-row"><span>Fuel</span><span>$ (42,108)</span></div>
-          <div class="pnl-row"><span>Driver pay</span><span>$ (58,420)</span></div>
-          <div class="pnl-row"><span>Maintenance &amp; repair</span><span>$ (11,940)</span></div>
-          <div class="pnl-row"><span>Insurance</span><span>$ (8,200)</span></div>
-          <div class="pnl-row"><span>Tolls &amp; permits</span><span>$ (2,840)</span></div>
-          <div class="pnl-row"><span>Other operating</span><span>$ (6,510)</span></div>
-          <div class="pnl-row total"><span>Net operating income</span><span>$ 54,232</span></div>
-        </div>
-      </div>
-    `;
+    const driverInput = $('#driverCount');
+    driverInput.value = state.driverCount;
+    driverInput.addEventListener('input', () => {
+      const v = Number(driverInput.value);
+      state.driverCount = Number.isFinite(v) && v >= 0 ? v : 0;
+    });
   }
 
-  // Fleet → drivers + trucks tables
-  if (state.modules.fleet?.enabled) {
-    mainHtml += `
-      <div class="sb-section">
-        <h3>🛻 Fleet — Drivers on duty today</h3>
-        <table class="sb-table">
-          <thead><tr><th>Driver</th><th>Truck</th><th>Status</th><th>Miles today</th></tr></thead>
-          <tbody>
-            ${fakeDrivers.slice(0, Math.min(5, Math.max(3, state.driverCount))).map(d => `
-              <tr>
-                <td>${d.name}</td>
-                <td>${d.truck}</td>
-                <td><span class="status-pill ${d.status==='On duty'?'status-green':d.status==='Available'?'status-yellow':'status-red'}">${d.status}</span></td>
-                <td>${d.miles}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-      <div class="sb-section">
-        <h3>🛻 Fleet — Equipment status</h3>
-        <table class="sb-table">
-          <thead><tr><th>Unit</th><th>Year</th><th>Make</th><th>Miles</th><th>Next service</th></tr></thead>
-          <tbody>
-            ${fakeTrucks.slice(0, Math.min(4, state.fleetSize)).map(t => `
-              <tr><td>${t.unit}</td><td>${t.year}</td><td>${t.make}</td><td>${t.miles}</td><td>${t.next}</td></tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
+  /* -------------------- STEP 7: MODULES -------------------- */
+
+  function eligibleModules() {
+    const ft = state.freightType;
+    return MODULES.filter((m) =>
+      m.recommendedFor.includes('all') || m.recommendedFor.includes(ft) || isExplicitlySelected(m.id)
+    );
   }
 
-  // Compliance → status cards
-  if (state.modules.compliance?.enabled) {
-    mainHtml += `
-      <div class="sb-section">
-        <h3>🛡️ Compliance — Status</h3>
-        <div class="compliance-row">
-          <div class="comp-card green">
-            <div class="comp-name">DOT Authority</div>
-            <div class="comp-status">Active • Renews 2027-02-14</div>
-          </div>
-          <div class="comp-card green">
-            <div class="comp-name">UCR Registration</div>
-            <div class="comp-status">Filed for 2026</div>
-          </div>
-          <div class="comp-card yellow">
-            <div class="comp-name">Drug & Alcohol Program</div>
-            <div class="comp-status">Random pool due in 21 days</div>
-          </div>
-          <div class="comp-card yellow">
-            <div class="comp-name">Driver Medical Cards</div>
-            <div class="comp-status">1 expires in 32 days (J. Martinez)</div>
-          </div>
-          <div class="comp-card red">
-            <div class="comp-name">IFTA Q1 Filing</div>
-            <div class="comp-status">Overdue — needs review</div>
-          </div>
-          <div class="comp-card green">
-            <div class="comp-name">SAFER / SMS</div>
-            <div class="comp-status">No alerts</div>
-          </div>
-        </div>
-      </div>
-    `;
+  function isExplicitlySelected(id) {
+    return !!(state.modules[id] && state.modules[id].enabled);
   }
 
-  // IFTA → quick KPI
-  if (state.modules.ifta?.enabled) {
-    mainHtml += `
-      <div class="sb-section">
-        <h3>⛽ IFTA — Q1 2026</h3>
-        <div class="kpi-row">
-          <div class="kpi"><div class="kpi-label">Total miles</div><div class="kpi-value">142,810</div></div>
-          <div class="kpi"><div class="kpi-label">Taxable gallons</div><div class="kpi-value">21,508</div></div>
-          <div class="kpi"><div class="kpi-label">Net tax due</div><div class="kpi-value warn">$ 3,184</div></div>
-          <div class="kpi"><div class="kpi-label">Filing status</div><div class="kpi-value bad">Overdue</div></div>
-        </div>
-      </div>
-    `;
+  function seedRecommendedModules() {
+    // Only seed if user hasn't touched modules yet
+    if (Object.keys(state.modules).length > 0) return;
+    ['gigabooks','compliance','fleet'].forEach((id) => {
+      state.modules[id] = { enabled: true, tier: 'basic' };
+    });
   }
 
-  // Payroll → simple snapshot
-  if (state.modules.payroll?.enabled) {
-    mainHtml += `
-      <div class="sb-section">
-        <h3>💼 Payroll — Current pay period</h3>
-        <table class="sb-table">
-          <thead><tr><th>Driver</th><th>Miles / Hours</th><th>Gross</th><th>Net</th></tr></thead>
-          <tbody>
-            <tr><td>J. Martinez</td><td>2,418 mi</td><td>$ 1,571.70</td><td>$ 1,202.30</td></tr>
-            <tr><td>R. Thompson</td><td>1,890 mi</td><td>$ 1,228.50</td><td>$ 938.40</td></tr>
-            <tr><td>D. Nguyen</td><td>2,205 mi</td><td>$ 1,433.25</td><td>$ 1,094.10</td></tr>
-          </tbody>
-        </table>
-      </div>
-    `;
-  }
+  function renderModules() {
+    const list = $('#modulesList');
+    const mods = eligibleModules();
 
-  frame.innerHTML = `
-    <div class="sandbox-topbar">
-      <div class="sandbox-tenant"><em>${subdomain}</em>.gigasphere.app</div>
-      <div class="sandbox-user">
-        <span>Your Fleet Co</span>
-        <span class="sandbox-avatar" style="background:${accent}">Y</span>
-      </div>
-    </div>
-    <div class="sandbox-body">
-      <aside class="sandbox-sidebar">
-        <div class="sandbox-nav">
-          ${navItems.map((n,i) => `
-            <div class="sandbox-nav-item${i===0?' active':''}">
-              <span>${n.icon}</span><span>${n.label}</span>
+    list.innerHTML = mods.map((m) => {
+      const sel = state.modules[m.id] || { enabled: false, tier: 'basic' };
+      const isRecommended = m.recommendedFor.includes(state.freightType) && !m.recommendedFor.includes('all');
+      return `
+        <div class="module-card ${sel.enabled ? 'active' : ''}" data-mod="${m.id}">
+          <div class="module-head">
+            <div class="module-head-text">
+              <div class="module-name">
+                ${m.name}
+                ${isRecommended ? '<span class="module-badge">Recommended</span>' : ''}
+              </div>
+              <p class="module-desc">${m.desc}</p>
             </div>
-          `).join('')}
+            <button type="button" class="module-toggle" data-toggle="${m.id}" aria-label="Toggle ${m.name}"></button>
+          </div>
+          <div class="tier-row">
+            ${TIERS.map((t) => `
+              <button type="button" class="tier-btn ${sel.tier === t ? 'active' : ''}" data-tier="${t}" data-mod="${m.id}">
+                <span class="tier-name">${TIER_LABELS[t]}</span>
+                <span class="tier-price">${money(m.tiers[t])}/mo</span>
+              </button>
+            `).join('')}
+          </div>
         </div>
-      </aside>
-      <div class="sandbox-main">${mainHtml}</div>
-    </div>
-  `;
-}
+      `;
+    }).join('');
 
-// ---------------- STEP 8 — CONVERT ----------------
-function buildConvertSummary() {
-  const mods = getActiveModules();
-  const monthly = monthlyTotal();
-  const fmt = (n) => '$' + Math.round(n).toLocaleString('en-US');
-  const display = state.billing === 'annual' ? monthly * 0.85 : monthly;
-  const freightName = FREIGHT_TYPES.find(f => f.id === state.freightType)?.name || '—';
+    $$('.module-toggle', list).forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.toggle;
+        const cur = state.modules[id] || { enabled: false, tier: 'basic' };
+        state.modules[id] = { enabled: !cur.enabled, tier: cur.tier };
+        renderModules();
+        updatePriceBar();
+        updateNextEnabled();
+      });
+    });
 
-  document.getElementById('convertSummary').innerHTML = `
-    <div>
-      <div class="cs-item-label">Configuration</div>
-      <div class="cs-item-value">${freightName}</div>
-    </div>
-    <div>
-      <div class="cs-item-label">Modules</div>
-      <div class="cs-item-value">${mods.length} selected</div>
-    </div>
-    <div>
-      <div class="cs-item-label">Subdomain</div>
-      <div class="cs-item-value">${state.subdomain || 'yourfleet'}.gigasphere.app</div>
-    </div>
-    <div>
-      <div class="cs-item-label">${state.billing === 'annual' ? 'Annual / month' : 'Monthly'}</div>
-      <div class="cs-item-value gold">${fmt(display)}/mo</div>
-    </div>
-  `;
-}
+    $$('.tier-btn', list).forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.mod;
+        const tier = btn.dataset.tier;
+        state.modules[id] = { enabled: true, tier };
+        renderModules();
+        updatePriceBar();
+        updateNextEnabled();
+      });
+    });
 
-function bindDownload() {
-  document.getElementById('downloadConfig').addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `gigabuild-config-${state.subdomain || 'yourfleet'}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
-}
+    updatePriceBar();
+  }
+
+  function selectedModulesList() {
+    return MODULES.filter((m) => state.modules[m.id] && state.modules[m.id].enabled)
+      .map((m) => ({ ...m, tier: state.modules[m.id].tier, price: m.tiers[state.modules[m.id].tier] }));
+  }
+
+  function monthlyTotal() {
+    return selectedModulesList().reduce((sum, m) => sum + m.price, 0);
+  }
+
+  function updatePriceBar() {
+    $('#modulePriceMonthly').textContent = money(monthlyTotal());
+  }
+
+  /* -------------------- STEP 8: REVIEW -------------------- */
+
+  function paymentSummary() {
+    if (!state.paymentMethod) return '—';
+    if (state.paymentMethod === 'permile') {
+      return state.ratePerMile ? `Per Mile — $${state.ratePerMile}/mi` : 'Per Mile';
+    }
+    if (state.paymentMethod === 'percentage') {
+      const base = PCT_BASES.find((b) => b.id === state.pctBase);
+      const baseLabel = base ? ` of ${base.title}` : '';
+      return state.percentage ? `${state.percentage}%${baseLabel}` : `Percentage${baseLabel}`;
+    }
+    if (state.paymentMethod === 'flat') {
+      return state.flatRate ? `Flat Rate — $${state.flatRate}/load` : 'Flat Rate';
+    }
+    return '—';
+  }
+
+  function freightLabel() {
+    const f = FREIGHT_TYPES.find((x) => x.id === state.freightType);
+    return f ? f.name : '—';
+  }
+
+  function renderReview() {
+    const card = $('#reviewSummary');
+    const mods = selectedModulesList();
+    const nameLine = state.fullName + (state.companyName ? ` · ${state.companyName}` : '');
+
+    card.innerHTML = `
+      <div class="review-block">
+        <div class="review-label">Account</div>
+        <div class="review-value">${nameLine || '—'}</div>
+      </div>
+      <div class="review-block">
+        <div class="review-label">Freight type</div>
+        <div class="review-value">${freightLabel()}</div>
+      </div>
+      <div class="review-block">
+        <div class="review-label">How you're paid</div>
+        <div class="review-value">${paymentSummary()}</div>
+      </div>
+      <div class="review-block">
+        <div class="review-label">Fleet</div>
+        <div class="review-value">${state.fleetSize} truck${state.fleetSize === 1 ? '' : 's'} · ${state.driverCount} driver${state.driverCount === 1 ? '' : 's'} · ${state.homeState} · ${state.vehicleClass}</div>
+      </div>
+      <div class="review-block">
+        <div class="review-label">Modules (${mods.length})</div>
+        <div class="review-modules">
+          ${mods.length === 0
+            ? '<div class="review-value">No modules selected</div>'
+            : mods.map((m) => `
+              <div class="review-module-row">
+                <span>${m.name}</span>
+                <span><span class="rm-tier">${TIER_LABELS[m.tier]}</span> &nbsp; ${money(m.price)}/mo</span>
+              </div>
+            `).join('')}
+        </div>
+      </div>
+    `;
+
+    updatePriceDisplay();
+  }
+
+  function updatePriceDisplay() {
+    const monthly = monthlyTotal();
+    const annual = Math.round(monthly * 12 * 0.85);
+    const annualPerMonth = Math.round(annual / 12);
+
+    if (state.billing === 'monthly') {
+      $('#priceLabel').textContent = 'Total per month';
+      $('#priceAmount').textContent = money(monthly);
+      $('#priceNote').textContent = monthly > 0 ? `${money(monthly * 12)} per year` : '';
+    } else {
+      $('#priceLabel').textContent = 'Per month, billed annually';
+      $('#priceAmount').textContent = money(annualPerMonth);
+      $('#priceNote').textContent = `${money(annual)} billed once a year — save 15%`;
+    }
+  }
+
+  function wireBillingToggle() {
+    $$('.bt-option').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.billing = btn.dataset.billing;
+        $$('.bt-option').forEach((b) => b.classList.toggle('active', b === btn));
+        updatePriceDisplay();
+      });
+    });
+  }
+
+  /* -------------------- STEP 9: DASHBOARD -------------------- */
+
+  function renderDashboard() {
+    const greeting = $('#dashGreeting');
+    const sub = $('#dashSub');
+    const firstName = (state.fullName || '').trim().split(/\s+/)[0];
+
+    greeting.textContent = firstName ? `Hey, ${firstName}` : 'Dashboard';
+    const companyBit = state.companyName ? ` at ${state.companyName}` : '';
+    sub.textContent = `Welcome to your sandbox${companyBit}.`;
+
+    const pills = $('#modulesActive');
+    const mods = selectedModulesList();
+    pills.innerHTML = mods.length
+      ? mods.map((m) => `<span class="ma-pill">${m.name} · ${TIER_LABELS[m.tier]}</span>`).join('')
+      : '';
+  }
+
+  /* -------------------- GENERIC INPUT BINDING -------------------- */
+
+  function bindTextInputs() {
+    const bindings = [
+      ['fullName',    (v) => { state.fullName    = v; updateNextEnabled(); }],
+      ['companyName', (v) => { state.companyName = v; }],
+      ['ratePerMile', (v) => { state.ratePerMile = v; }],
+      ['percentage',  (v) => { state.percentage  = v; }],
+      ['flatRate',    (v) => { state.flatRate    = v; }],
+      ['avgMpg',      (v) => { state.avgMpg      = v; }],
+      ['weeklyFixed', (v) => { state.weeklyFixed = v; }],
+    ];
+    bindings.forEach(([id, setter]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', () => setter(el.value));
+    });
+  }
+
+  function wireNav() {
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-nav]');
+      if (!btn) return;
+      const dir = btn.dataset.nav;
+      if (dir === 'next') next();
+      if (dir === 'back') back();
+    });
+  }
+
+  function wireRestart() {
+    const btn = $('#dashRestart');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      Object.assign(state, {
+        step: 1,
+        fullName: '', companyName: '',
+        freightType: null,
+        paymentMethod: null, ratePerMile: '', percentage: '', pctBase: null, flatRate: '',
+        avgMpg: '', weeklyFixed: '',
+        fleetSize: 1, homeState: 'TX', vehicleClass: 'DOT Required', driverCount: 1,
+        modules: {},
+        billing: 'monthly',
+      });
+
+      $$('input[type="text"], input[type="number"], input[type="email"]').forEach((i) => { i.value = ''; });
+      $('#fleetSize').value = 1;
+      $('#fleetSizeRead').textContent = '1';
+      $('#driverCount').value = 1;
+      $('#homeState').value = 'TX';
+
+      $$('.freight-card, .pay-card, .pct-base-option, .tier-btn').forEach((el) => el.classList.remove('active'));
+      $$('#vehicleClassList .seg').forEach((b) => b.classList.toggle('active', b.dataset.vc === 'DOT Required'));
+      $$('.bt-option').forEach((b, i) => b.classList.toggle('active', i === 0));
+
+      $('#condPerMile').hidden = true;
+      $('#condPercentage').hidden = true;
+      $('#condFlat').hidden = true;
+
+      updateNextEnabled();
+      show(1);
+    });
+  }
+
+  /* -------------------- INIT -------------------- */
+
+  function init() {
+    renderFreightGrid();
+    renderPaymentList();
+    renderHomeStateDropdown();
+    renderVehicleClass();
+    wireFleetInputs();
+    wireBillingToggle();
+    bindTextInputs();
+    wireNav();
+    wireRestart();
+
+    toggleConditionals();
+    updateNextEnabled();
+    show(1);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();

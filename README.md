@@ -1,17 +1,17 @@
-# GigaBuild — Beta Sandbox Configurator
+# Giga-Build — Beta Sandbox Configurator
 
-The customer-facing configurator that prospects walk through to design their Giga-Sphere platform before signing up. Deploys to **gigabuild.dev** (domain owned on Porkbun; Vercel hookup pending).
+Trucker-native onboarding flow for the Giga-Sphere platform. Prospects walk through 9 quick screens (name → freight → payment → costs → fleet → modules → review → dashboard preview) and end up with a configured stack and a sandbox they can poke at. Deploys to **gigabuild.dev** (domain owned on Porkbun; Vercel hookup pending).
 
 - **Stack:** static HTML/CSS/JS — no framework, no build step
-- **State:** single in-memory `state` object on `window` (no backend)
+- **State:** single in-memory `state` object on `window.gigaBuild` (no backend)
 - **Brand:** Navy `#0d1f35` / Gold `#e8a020` / White — Barlow Condensed (display) + Inter (body)
-- **Theme:** dark, sticky header, animated progress bar, mobile-responsive
+- **Theme:** dark, mobile-first, animated progress bar, one question per screen
+- **Inspiration:** Load Ledger's onboarding UX — built for phones, in the truck cab
 
 ## Run locally
 
 ```bash
 cd ~/gigabuild-dev
-# Any static server works. Examples:
 python3 -m http.server 5173
 #   → open http://localhost:5173
 
@@ -25,103 +25,161 @@ Or just double-click `index.html` — it works straight from the file system.
 
 | File         | Role |
 |--------------|------|
-| `index.html` | Markup for all 8 steps, header, progress bar, footer |
-| `styles.css` | Brand tokens, layout, step transitions, mock dashboard styles |
-| `app.js`     | State, navigation, all data (freight types, modules, schemas), rendering, pricing math |
+| `index.html` | Markup for all 9 steps + progress header + dashboard preview |
+| `styles.css` | Brand tokens, layout, step transitions, dashboard styles |
+| `app.js`     | State, navigation, conditional logic, module pricing, all rendering |
 
 ---
 
-## The 8-step flow
+## The 9-step flow
 
-Each step is a `<section class="step" data-step="N">`. Only the active step is visible; navigation animates a fade-up transition. The progress bar fills proportionally (`step / 8 * 100%`).
+Each step is a `<section class="step" data-step="N">`. Only the active step is visible; navigation animates a fade-up transition. The progress bar fills proportionally to **Step X of 7** — only steps 2–8 show the header and progress bar. Step 1 (welcome) and Step 9 (dashboard) hide them.
 
-### Step 1 — Welcome / Freight type
-- Hero: *"Build Your Compliance Operating System"*
-- Card grid of 12 freight types (Straight, Dry Van, Reefer, Flatbed, Tanker, Hazmat, Dump, Hotshot, Auto Hauler, Intermodal, Last-Mile, Mixed)
-- Selecting a card gives it a gold border + glow and enables **Next**
-- Result captured to `state.freightType`
+### Step 1 — Welcome (no step counter)
+- 60×60 gold "GS" logo tile
+- Heading: *"Giga-Build"*
+- Sub: *"Build your compliance operating system."*
+- Three value props with gold checkmarks:
+  - Configure your modules — pay only for what you need.
+  - AI-powered setup — live in under 30 minutes.
+  - 50-state compliance engine built in.
+- Gold CTA: **Create Free Account** → advances to Step 2
+- *"Already have an account? Sign In"* link below
 
-### Step 2 — About your fleet
-- Range slider: fleet size 1–100 trucks (live read-out in gold)
-- Vehicle classification dropdown (DOT / CDL / Non-DOT / Mixed)
+### Step 2 — About you (Step 1 of 7)
+- Gold user-silhouette icon
+- *"What's your name?"* heading
+- Full Name input (required — Continue stays disabled until filled)
+- Company Name input (optional, tagged as such)
+- Back / Continue
+- Captured to `state.fullName` / `state.companyName`
+
+### Step 3 — What do you haul? (Step 2 of 7)
+- Blue truck icon
+- 10 visual cards in a 2-column grid (3-col on desktop): Day Cab/Straight, Sleeper/OTR, Flatbed, Reefer, Tanker, Dump, Hotshot, Box Truck, Auto Hauler, Other
+- Each card has an inline SVG silhouette — no external image deps
+- Selecting a card gives it a gold border + glow + checkmark, and seeds a starter module set (`gigabooks` + `compliance` + `fleet` on Basic) for Step 7
+- Captured to `state.freightType`
+
+### Step 4 — How do you get paid? (Step 3 of 7)
+- Green dollar-coin icon
+- Three full-width option cards: Per Mile / Percentage / Flat Rate
+- **Conditional fields** revealed below the selection:
+  - **Per Mile** → "Your rate per mile" input (e.g. `0.65`)
+  - **Percentage** → percentage input + three sub-options for the calc base: Gross Revenue / After Fuel Surcharge / After FSC + Tolls
+  - **Flat Rate** → "Average flat rate per load" input (e.g. `850`)
+- Continue is gated until method + (if percentage) a base option are picked
+- Captured to `state.paymentMethod`, `state.ratePerMile`, `state.percentage`, `state.pctBase`, `state.flatRate`
+
+### Step 5 — Your regular costs (Step 4 of 7)
+- Red fuel-pump icon
+- *Both fields optional — skip anything you don't know yet.*
+- Average MPG input (e.g. `6.5`) with hint "Used to estimate fuel cost per load"
+- Weekly Fixed Costs ($ prefix, e.g. `850`) with hint "Truck payment, insurance, phone — anything you pay every week regardless of loads"
+- Gold tip box: 💡 *"You can always update these later in your Profile settings."*
+- Captured to `state.avgMpg` / `state.weeklyFixed`
+
+### Step 6 — Your fleet (Step 5 of 7)
+- Purple truck-fleet icon
+- Fleet size slider 1–100 with gold live read-out and tick labels (1 / 25 / 50 / 75 / 100)
 - Home state dropdown (all 50 + DC, defaults to TX)
-- Number-of-drivers input
-- **Back** and **Next** buttons; data captured to `state.fleetSize / vehicleClass / homeState / driverCount`
+- Vehicle classification — segmented 2×2 grid: DOT Required / CDL Required / Non-DOT / Mixed Fleet
+- Number of drivers input
+- Captured to `state.fleetSize` / `state.homeState` / `state.vehicleClass` / `state.driverCount`
 
-### Step 3 — Choose your modules
-- Two-column layout: module grid + sticky price card on the right
-- 11 modules: GigaBooks, Fleet Management, Compliance Engine, IFTA Reporting, Payroll & HR, Driver Onboarding, Asset Manager, Domain & Hosting, Digital Shipment Management, Security & Chain of Custody, Compliance Education
-- **Recommended** badge and pre-toggled-on for modules whose `recommendedFor` array includes the chosen freight type (or `'all'`)
-- Each card has Basic / Pro / Enterprise tier buttons with live monthly pricing + an "Add this module" toggle
-- Selecting a tier auto-toggles the module on
-- Sticky price card updates in real time with subtotal + breakdown
-- **Next** disabled until at least one module is selected
+### Step 7 — Build your stack (Step 6 of 7)
+- *"Select the modules you need. Your price updates in real time."*
+- Modules **pre-filtered by Step 3 freight type** — only the catalog entries whose `recommendedFor` includes the selected freight (or `'all'`) appear. Already-enabled modules also remain visible even if filtered out by a later freight change.
+- Each module card: name + one-line description + 3 tier buttons (Basic / Pro / Enterprise) with prices + on/off switch
+- Selecting a tier auto-toggles the module on. Toggle off removes it from the price total.
+- Freight-specific badges flag modules that aren't on the `'all'` list (e.g. Reefer triggers *Temperature Logs* with a **Recommended** badge)
+- Sticky navy/gold price bar fixed to the bottom of the viewport with live monthly subtotal
+- Continue gated until ≥1 module is enabled
 - State: `state.modules[id] = { enabled, tier }`
 
-### Step 4 — Configure each module
-- One mini-config panel rendered per selected module
-- Schema-driven from `MODULE_CONFIG_SCHEMA` in `app.js` — 2–3 fields per module max
-  - **GigaBooks:** filing status, entity type, industry
-  - **Fleet Management:** truck types (checklist), maintenance schedule
-  - **Compliance Engine:** endorsements held (checklist), freight types hauled (checklist)
-  - Plus light schemas for IFTA, Payroll, Onboarding, Assets, Domain, Shipment, Security, Education
-- Checklist items render as pill toggles
-- All answers captured into `state.moduleConfig[moduleId][fieldKey]`
+### Step 8 — Review (Step 7 of 7)
+- *"Review your build."*
+- Monthly / Annual billing toggle (annual = 15% off; shown as $/mo equivalent + total billed once a year)
+- Summary card lists: Account · Freight · Payment method · Fleet line · Modules with tiers and per-line $/mo
+- Big gold price block (label + amount + secondary note)
+- Two trust badges: 🛡️ 7-day free trial — card required · 🛡️ 30-day money-back guarantee
+- Gold CTA: **Start Free Trial** → advances to Step 9 sandbox
 
-### Step 5 — Domain & branding
-- Subdomain text input with live preview of `<subdomain>.gigasphere.app` (input is normalized to a-z 0-9 -)
-- Toggle for custom domain → reveals a domain-name input
-- Logo upload UI (visual placeholder — not wired to anything)
-- 6-color accent picker; active swatch ringed in gold
-- State: `state.subdomain / customDomainEnabled / customDomain / accentColor`
-
-### Step 6 — Review & price
-- Two-column layout: full configuration summary + big price card on the right
-- Monthly / Annual toggle. Annual = 15% off the monthly stack, displayed as monthly-equivalent + annual total
-- Three badges: 7-day free trial (card required), 30-day money-back guarantee, "Domain registration is non-refundable" note
-- Summary blocks: Operation / Modules / Domain & Branding
-
-### Step 7 — Sandbox preview (demo mode)
-- Full-width mock tenant dashboard, dynamically built from selected modules
-- Top bar shows `<subdomain>.gigasphere.app` and an avatar in the user's accent color
-- Left sidebar shows their selected modules as nav items (Dashboard always pinned)
-- Main area always renders KPIs (fleet size, drivers, on-duty, alerts)
-- **GigaBooks selected** → sample monthly P&L with realistic line items
-- **Fleet Management selected** → driver duty table + equipment table
-- **Compliance Engine selected** → 6 status cards (green / yellow / red)
-- **IFTA selected** → quarterly KPI strip
-- **Payroll selected** → pay-period table
-- Sample data uses driver names like J. Martinez, R. Thompson and company name "Your Fleet Co"
-
-### Step 8 — Convert
-- Final summary card with configuration, module count, subdomain, and monthly total in gold
-- **Start Free Trial** → Calendly: `https://calendly.com/agbexar-gigasphere/product-walkthrough-giga-sphere-os`
-- **Download your configuration** → downloads `state` as a JSON file
-- **Talk to our team** → same Calendly link
+### Step 9 — Your dashboard (sandbox preview, no progress chrome)
+- Personalized header: *"Hey, {firstName}"* + *"Welcome to your sandbox at {Company}."*
+- **This Week** KPI card: Net Profit (gold) / Revenue / Expenses / Loads (all $0 / 0 — empty sandbox)
+- Two metric cards: Miles this week · Profit / mile
+- **This Month** table: Revenue / Fuel / Fixed costs / Other / Net row in gold
+- Quick Actions 2×2 grid: ＋ Add Load · ✓ View Compliance · 📊 Run Reports · ⚙ Settings
+- Empty-state card with truck emoji + *"No loads yet — Add your first load to start tracking."* + gold Add Load button
+- Pills under empty state list the selected modules with their tier (so the user sees their stack)
+- Fixed bottom nav: Dashboard / Loads / Reports / Profile
+- **Restart Demo** button (top-right) wipes state and returns to Step 1
 
 ---
 
 ## State shape
 
 ```js
-state = {
+window.gigaBuild = {
   step: 1,
-  freightType: 'dryvan',
+  fullName: 'Alex Rivera',
+  companyName: 'Rivera Trucking LLC',
+  freightType: 'reefer',
+  paymentMethod: 'percentage',  // 'permile' | 'percentage' | 'flat'
+  ratePerMile: '',
+  percentage: '75',
+  pctBase: 'afterFsc',          // 'gross' | 'afterFsc' | 'afterFscTolls'
+  flatRate: '',
+  avgMpg: '6.5',
+  weeklyFixed: '850',
   fleetSize: 5,
-  vehicleClass: 'DOT Required',
   homeState: 'TX',
+  vehicleClass: 'DOT Required',
   driverCount: 5,
-  modules: { gigabooks: { enabled: true, tier: 'pro' }, ... },
-  moduleConfig: { gigabooks: { filingStatus: 'Single', ... }, ... },
-  subdomain: 'yourfleet',
-  customDomainEnabled: false,
-  customDomain: '',
-  accentColor: '#e8a020',
-  billing: 'monthly'
+  modules: {
+    gigabooks: { enabled: true, tier: 'pro' },
+    compliance: { enabled: true, tier: 'basic' },
+    temp: { enabled: true, tier: 'pro' },
+  },
+  billing: 'monthly',            // 'monthly' | 'annual'
+};
+```
+
+State persists in memory only — navigating back and forth never loses prior answers, but a page refresh resets to Step 1. No backend, no localStorage.
+
+---
+
+## Module catalog
+
+Defined in `app.js` → `MODULES`. Each entry:
+
+```js
+{
+  id: 'temp',
+  name: 'Temperature Logs',
+  desc: '…',
+  tiers: { basic: 25, pro: 65, enterprise: 119 },
+  recommendedFor: ['reefer'],   // or ['all'] to surface for every freight type
 }
 ```
 
-The **Download your configuration** button on Step 8 dumps this exact object to a JSON file.
+Current modules:
+
+| ID | Name | Recommended for |
+|----|------|-----------------|
+| gigabooks | GigaBooks | all |
+| fleet | Fleet Management | all |
+| compliance | Compliance Engine | all |
+| ifta | IFTA Reporting | every commercial truck type |
+| payroll | Payroll & HR | all |
+| onboarding | Driver Onboarding | all |
+| hazmat | Hazmat Compliance | tanker |
+| temp | Temperature Logs | reefer |
+| securement | Load Securement Logs | flatbed, autohaul |
+| shipment | Digital Shipment Mgmt | all |
+
+To add a module: append an entry to `MODULES`. Filtering and pricing pick it up automatically.
 
 ---
 
@@ -129,32 +187,23 @@ The **Download your configuration** button on Step 8 dumps this exact object to 
 
 Not yet deployed. Plan:
 
-1. Push repo to GitHub
+1. Push repo to GitHub (`giga-sphere-os/gigabuild-dev`)
 2. Connect to Vercel (zero config — static)
 3. Point Porkbun-owned `gigabuild.dev` at Vercel via DNS records
 
-> Per repo canon: no Apps Script, no Drive MCP for >14 KB. This site doesn't write to any Giga-Sphere data plane — it's a pure marketing/configurator surface. No SA, no secrets, no backend.
-
-## Adding a freight type, module, or config field
-
-All three live in `app.js` constants:
-
-- `FREIGHT_TYPES` — add `{ id, name, icon }`
-- `MODULES` — add `{ id, name, icon, desc, tiers, recommendedFor }`
-- `MODULE_CONFIG_SCHEMA` — add a `{ title, fields: [...] }` entry under the module id
-
-Field types currently supported: `select`, `checklist`. Add new types in `renderField()` in `app.js`.
+Per repo canon: no Apps Script, no Drive MCP for >14 KB. This site doesn't write to any Giga-Sphere data plane — it's a pure marketing/configurator surface. No service account, no secrets, no backend.
 
 ---
 
 ## Style guide
 
-- **Display font:** Barlow Condensed (700/800) — all `h1`–`h4`, KPI values, brand mark
+- **Display font:** Barlow Condensed (700/800) — all `h1`–`h4`, KPI values, brand mark, tier names
 - **Body font:** Inter (400/500/600/700)
-- **Gold (`#e8a020`)** is the constant accent in both light and dark mode (per `giga-sphere-brand` skill canon) — uses: CTAs, active tier buttons, price totals, focus rings, progress bar fill, brand mark first-letter, active step indicator
-- **Cards** sit on Navy Mid (`#1a3a5c`) with a subtle border. Active/selected cards get a gold border + glow shadow
-- **Animation budget:** 160ms for micro (hover, tier select) / 240ms for step transitions
-- **Mobile breakpoint:** 640px — buttons stack, sticky cards drop to inline
+- **Gold (`#e8a020`)** is the constant accent: CTAs, active tier buttons, price totals, focus rings, progress bar fill, brand logo, active step indicator. Per `giga-sphere-brand` skill canon, gold stays the same in both light and dark mode.
+- **Cards** sit on Navy Mid (`#14304f`) with subtle border. Active/selected cards get a gold border + soft glow.
+- **Animation budget:** 160ms for micro (hover, tier select) / 240ms for step transitions.
+- **Mobile breakpoint:** 720px — desktop expands freight grid to 3 columns and the dashboard to a wider canvas.
+- **Designed mobile-first** for phones (used in the truck cab) and scales up on tablet/desktop.
 
 ---
 

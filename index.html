@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>GigaBuild — Configure Your Giga-Sphere Platform</title>
-<meta name="description" content="Build your compliance operating system. Configure Giga-Sphere modules for your fleet in minutes." />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0d1f35" />
+<title>Giga-Build — Build Your Compliance Operating System</title>
+<meta name="description" content="Configure your Giga-Sphere modules. AI-powered setup, live in under 30 minutes." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,263 +13,379 @@
 </head>
 <body>
 
-<!-- ============================== HEADER / PROGRESS ============================== -->
-<header class="app-header">
+<!-- ============================== PROGRESS HEADER (hidden on welcome/dashboard) ============================== -->
+<header class="app-header" id="appHeader" hidden>
   <div class="brand">
-    <span class="brand-mark">GigaBuild</span>
-    <span class="brand-tag">by Giga-Sphere</span>
+    <div class="brand-logo">GS</div>
+    <div class="brand-text">
+      <span class="brand-mark">Giga-Build</span>
+      <span class="brand-tag" id="stepName">About you</span>
+    </div>
   </div>
-  <div class="step-indicator" id="stepIndicator">Step 1 of 8</div>
+  <div class="step-indicator" id="stepIndicator">Step 1 of 7</div>
 </header>
 
-<div class="progress-wrap">
+<div class="progress-wrap" id="progressWrap" hidden>
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 </div>
 
 <main class="app">
 
-<!-- ============================== STEP 1 — WELCOME / FREIGHT TYPE ============================== -->
-<section class="step active" data-step="1">
-  <div class="step-header">
-    <h1>Build Your Compliance Operating System</h1>
-    <p class="lede">Tell us about your operation and we'll configure everything automatically.</p>
-  </div>
+<!-- ============================== STEP 1 — WELCOME ============================== -->
+<section class="step active welcome" data-step="1">
+  <div class="welcome-inner">
+    <div class="welcome-logo">GS</div>
+    <h1 class="welcome-title">Giga-Build</h1>
+    <p class="welcome-sub">Build your compliance operating system.</p>
 
-  <h2 class="section-title">What kind of freight do you haul?</h2>
-  <div class="freight-grid" id="freightGrid">
-    <!-- populated by JS -->
-  </div>
+    <ul class="value-props">
+      <li>
+        <span class="vp-check">✓</span>
+        <span>Configure your modules — pay only for what you need.</span>
+      </li>
+      <li>
+        <span class="vp-check">✓</span>
+        <span>AI-powered setup — live in under 30 minutes.</span>
+      </li>
+      <li>
+        <span class="vp-check">✓</span>
+        <span>50-state compliance engine built in.</span>
+      </li>
+    </ul>
 
-  <div class="step-actions">
-    <div></div>
-    <button class="btn btn-primary" id="step1Next" disabled>Next →</button>
-  </div>
-</section>
-
-<!-- ============================== STEP 2 — ABOUT YOUR FLEET ============================== -->
-<section class="step" data-step="2">
-  <div class="step-header">
-    <h1>About Your Fleet</h1>
-    <p class="lede">A few details so we can right-size your modules and compliance settings.</p>
-  </div>
-
-  <div class="form-grid">
-    <div class="field">
-      <label for="fleetSize">Fleet size <span class="muted">(trucks)</span></label>
-      <div class="slider-row">
-        <input type="range" id="fleetSize" min="1" max="100" value="5" />
-        <output id="fleetSizeOut" class="slider-out">5</output>
-      </div>
-      <p class="hint">Drag to set your power-unit count.</p>
-    </div>
-
-    <div class="field">
-      <label for="vehicleClass">Vehicle classification</label>
-      <select id="vehicleClass">
-        <option value="DOT Required">DOT Required</option>
-        <option value="CDL Required">CDL Required</option>
-        <option value="Non-DOT">Non-DOT</option>
-        <option value="Mixed">Mixed</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label for="homeState">Home state</label>
-      <select id="homeState">
-        <!-- populated by JS -->
-      </select>
-    </div>
-
-    <div class="field">
-      <label for="driverCount">Number of drivers</label>
-      <input type="number" id="driverCount" min="1" value="5" />
-    </div>
-  </div>
-
-  <div class="step-actions">
-    <button class="btn btn-ghost" data-back>← Back</button>
-    <button class="btn btn-primary" id="step2Next">Next →</button>
+    <button class="btn btn-primary btn-block" data-nav="next">Create Free Account</button>
+    <p class="signin-line">Already have an account? <a href="#" class="link-gold">Sign In</a></p>
   </div>
 </section>
 
-<!-- ============================== STEP 3 — CHOOSE MODULES ============================== -->
-<section class="step" data-step="3">
-  <div class="step-header">
-    <h1>Choose Your Modules</h1>
-    <p class="lede">Pre-filtered for your freight type. Toggle on what you need, pick a tier, and watch the total update on the right.</p>
+<!-- ============================== STEP 2 — ABOUT YOU ============================== -->
+<section class="step" data-step="2" data-step-label="About you" data-step-num="1">
+  <div class="step-icon icon-gold">
+    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="8" r="4"></circle>
+      <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"></path>
+    </svg>
+  </div>
+  <h2 class="step-title">What's your name?</h2>
+  <p class="step-sub">We'll use this on your reports and profile.</p>
+
+  <div class="form-group">
+    <label for="fullName">Full Name</label>
+    <input type="text" id="fullName" placeholder="e.g. Alex Rivera" autocomplete="name" />
   </div>
 
-  <div class="modules-layout">
-    <div class="modules-grid" id="modulesGrid">
-      <!-- populated by JS -->
-    </div>
-    <aside class="price-sticky" id="priceSticky">
-      <div class="price-card">
-        <div class="price-label">Estimated monthly total</div>
-        <div class="price-amount" id="priceAmount">$0</div>
-        <div class="price-sub" id="priceSub">0 modules selected</div>
-        <hr class="price-hr" />
-        <ul class="price-breakdown" id="priceBreakdown"></ul>
-      </div>
-    </aside>
+  <div class="form-group">
+    <label for="companyName" class="label-optional">Company Name <span class="opt-tag">optional</span></label>
+    <input type="text" id="companyName" placeholder="e.g. Rivera Trucking LLC" autocomplete="organization" />
   </div>
 
   <div class="step-actions">
-    <button class="btn btn-ghost" data-back>← Back</button>
-    <button class="btn btn-primary" id="step3Next" disabled>Next →</button>
+    <button class="btn btn-ghost" data-nav="back">Back</button>
+    <button class="btn btn-primary" data-nav="next" id="step2Next">Continue</button>
   </div>
 </section>
 
-<!-- ============================== STEP 4 — CONFIGURE EACH MODULE ============================== -->
-<section class="step" data-step="4">
-  <div class="step-header">
-    <h1>Configure Each Module</h1>
-    <p class="lede">A couple of quick questions per module. You can change all of this later.</p>
+<!-- ============================== STEP 3 — FREIGHT TYPE ============================== -->
+<section class="step" data-step="3" data-step-label="Your operation" data-step-num="2">
+  <div class="step-icon icon-blue">
+    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 7h11v10H3zM14 10h4l3 3v4h-7zM6.5 20a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM17.5 20a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+    </svg>
   </div>
+  <h2 class="step-title">What do you haul?</h2>
+  <p class="step-sub">Select the type that best matches your operation.</p>
 
-  <div class="config-stack" id="configStack">
-    <!-- populated by JS based on selected modules -->
-  </div>
+  <div class="freight-grid" id="freightGrid"><!-- populated by JS --></div>
 
   <div class="step-actions">
-    <button class="btn btn-ghost" data-back>← Back</button>
-    <button class="btn btn-primary" id="step4Next">Next →</button>
+    <button class="btn btn-ghost" data-nav="back">Back</button>
+    <button class="btn btn-primary" data-nav="next" id="step3Next" disabled>Continue</button>
   </div>
 </section>
 
-<!-- ============================== STEP 5 — DOMAIN & BRANDING ============================== -->
-<section class="step" data-step="5">
-  <div class="step-header">
-    <h1>Domain & Branding</h1>
-    <p class="lede">Your portal lives at a subdomain we set up for you. Bring your own domain later if you want.</p>
+<!-- ============================== STEP 4 — PAYMENT ============================== -->
+<section class="step" data-step="4" data-step-label="How you're paid" data-step-num="3">
+  <div class="step-icon icon-green">
+    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M12 7v10M9 10c0-1 1-2 3-2s3 1 3 2-1 1.5-3 2-3 1-3 2 1 2 3 2 3-1 3-2"></path>
+    </svg>
+  </div>
+  <h2 class="step-title">How do you get paid?</h2>
+  <p class="step-sub">We'll use this to calculate your earnings per load.</p>
+
+  <div class="pay-list" id="payList"><!-- populated by JS --></div>
+
+  <!-- Conditional: per mile -->
+  <div class="conditional" id="condPerMile" hidden>
+    <div class="form-group">
+      <label for="ratePerMile">Your rate per mile</label>
+      <div class="input-prefix">
+        <span class="prefix-mark">$</span>
+        <input type="number" id="ratePerMile" step="0.01" min="0" placeholder="e.g. 0.65" inputmode="decimal" />
+      </div>
+    </div>
   </div>
 
-  <div class="form-grid">
-    <div class="field full">
-      <label for="subdomain">Subdomain</label>
-      <div class="domain-row">
-        <input type="text" id="subdomain" placeholder="yourfleet" autocomplete="off" />
-        <span class="domain-suffix">.gigasphere.app</span>
-      </div>
-      <p class="hint">Preview: <span id="subdomainPreview" class="preview-link">yourfleet.gigasphere.app</span></p>
-    </div>
-
-    <div class="field full">
-      <label class="toggle-row">
-        <input type="checkbox" id="customDomainToggle" />
-        <span>Add a custom domain</span>
-      </label>
-      <input type="text" id="customDomain" placeholder="yourcompany.com" class="hidden" />
-    </div>
-
-    <div class="field">
-      <label>Upload your logo <span class="muted">(optional)</span></label>
-      <div class="upload-box">
-        <span class="upload-icon">⬆</span>
-        <span>Drop logo here or <em>browse</em></span>
-        <span class="upload-hint">PNG or SVG, transparent background</span>
+  <!-- Conditional: percentage -->
+  <div class="conditional" id="condPercentage" hidden>
+    <div class="form-group">
+      <label for="percentage">Your percentage</label>
+      <div class="input-suffix">
+        <input type="number" id="percentage" step="1" min="0" max="100" placeholder="e.g. 75" inputmode="numeric" />
+        <span class="suffix-mark">%</span>
       </div>
     </div>
 
-    <div class="field">
-      <label>Accent color</label>
-      <div class="color-row" id="colorRow">
-        <button type="button" class="swatch active" data-color="#e8a020" style="background:#e8a020"></button>
-        <button type="button" class="swatch" data-color="#2a5a8c" style="background:#2a5a8c"></button>
-        <button type="button" class="swatch" data-color="#4a8c52" style="background:#4a8c52"></button>
-        <button type="button" class="swatch" data-color="#b03a3a" style="background:#b03a3a"></button>
-        <button type="button" class="swatch" data-color="#7a4ab0" style="background:#7a4ab0"></button>
-        <button type="button" class="swatch" data-color="#c8881a" style="background:#c8881a"></button>
+    <div class="form-group">
+      <label>My percentage is calculated from:</label>
+      <div class="pct-base-list" id="pctBaseList"><!-- populated by JS --></div>
+    </div>
+  </div>
+
+  <!-- Conditional: flat rate -->
+  <div class="conditional" id="condFlat" hidden>
+    <div class="form-group">
+      <label for="flatRate">Average flat rate per load</label>
+      <div class="input-prefix">
+        <span class="prefix-mark">$</span>
+        <input type="number" id="flatRate" step="1" min="0" placeholder="e.g. 850" inputmode="decimal" />
       </div>
     </div>
   </div>
 
   <div class="step-actions">
-    <button class="btn btn-ghost" data-back>← Back</button>
-    <button class="btn btn-primary" id="step5Next">Next →</button>
+    <button class="btn btn-ghost" data-nav="back">Back</button>
+    <button class="btn btn-primary" data-nav="next" id="step4Next" disabled>Continue</button>
   </div>
 </section>
 
-<!-- ============================== STEP 6 — REVIEW & PRICE ============================== -->
-<section class="step" data-step="6">
-  <div class="step-header">
-    <h1>Review &amp; Price</h1>
-    <p class="lede">Here's everything you configured. Switch to annual for 15% off.</p>
+<!-- ============================== STEP 5 — COSTS ============================== -->
+<section class="step" data-step="5" data-step-label="Your costs" data-step-num="4">
+  <div class="step-icon icon-red">
+    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 21h11V5a2 2 0 00-2-2H5a2 2 0 00-2 2v16zM14 9h2l3 3v9h-5"></path>
+      <path d="M7 7h4M7 11h4"></path>
+    </svg>
+  </div>
+  <h2 class="step-title">Your regular costs</h2>
+  <p class="step-sub">Both fields are optional — skip anything you don't know yet.</p>
+
+  <div class="form-group">
+    <label for="avgMpg">Average MPG</label>
+    <input type="number" id="avgMpg" step="0.1" min="0" placeholder="e.g. 6.5" inputmode="decimal" />
+    <p class="field-hint">Used to estimate fuel cost per load.</p>
   </div>
 
-  <div class="review-layout">
-    <div class="review-summary" id="reviewSummary"></div>
-    <aside class="review-price">
-      <div class="billing-toggle">
-        <button class="bt-opt active" data-billing="monthly">Monthly</button>
-        <button class="bt-opt" data-billing="annual">Annual <span class="save-pill">Save 15%</span></button>
-      </div>
-      <div class="big-price">
-        <span class="big-price-amount" id="bigPriceAmount">$0</span>
-        <span class="big-price-period" id="bigPricePeriod">/ month</span>
-      </div>
-      <div class="big-price-sub" id="bigPriceSub"></div>
-      <div class="badges">
-        <div class="badge">✓ 7-day free trial — card required</div>
-        <div class="badge">✓ 30-day money-back guarantee</div>
-        <div class="badge muted-badge">ⓘ Domain registration is non-refundable</div>
-      </div>
-    </aside>
+  <div class="form-group">
+    <label for="weeklyFixed">Weekly Fixed Costs</label>
+    <div class="input-prefix">
+      <span class="prefix-mark">$</span>
+      <input type="number" id="weeklyFixed" step="1" min="0" placeholder="e.g. 850" inputmode="decimal" />
+    </div>
+    <p class="field-hint">Truck payment, insurance, phone — anything you pay every week regardless of loads.</p>
   </div>
 
-  <div class="step-actions">
-    <button class="btn btn-ghost" data-back>← Back</button>
-    <button class="btn btn-primary" id="step6Next">See My Sandbox →</button>
-  </div>
-</section>
-
-<!-- ============================== STEP 7 — SANDBOX PREVIEW ============================== -->
-<section class="step step-full" data-step="7">
-  <div class="step-header">
-    <h1>Your Sandbox Preview</h1>
-    <p class="lede">A demo of your portal with sample data. This is exactly what you'll see — minus the placeholders.</p>
-  </div>
-
-  <div class="sandbox-frame" id="sandboxFrame">
-    <!-- mock dashboard injected by JS -->
+  <div class="tip-box">
+    <span class="tip-icon">💡</span>
+    <span>You can always update these later in your Profile settings.</span>
   </div>
 
   <div class="step-actions">
-    <button class="btn btn-ghost" data-back>← Back</button>
-    <button class="btn btn-primary" id="step7Next">I Like What I See →</button>
+    <button class="btn btn-ghost" data-nav="back">Back</button>
+    <button class="btn btn-primary" data-nav="next">Continue</button>
   </div>
 </section>
 
-<!-- ============================== STEP 8 — CONVERT ============================== -->
-<section class="step step-convert" data-step="8">
-  <div class="step-header">
-    <h1>Ready to go live?</h1>
-    <p class="lede">Your configuration is saved. Start your 7-day free trial and replace the demo data with your real operation.</p>
+<!-- ============================== STEP 6 — FLEET ============================== -->
+<section class="step" data-step="6" data-step-label="Your fleet" data-step-num="5">
+  <div class="step-icon icon-purple">
+    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 9h9v8H2zM11 11h5l3 3v3h-8z"></path>
+      <circle cx="6" cy="18" r="1.5"></circle>
+      <circle cx="16" cy="18" r="1.5"></circle>
+      <path d="M14 5h7M14 8h5"></path>
+    </svg>
+  </div>
+  <h2 class="step-title">Tell us about your fleet</h2>
+  <p class="step-sub">A few quick facts so we can size your stack.</p>
+
+  <div class="form-group">
+    <label for="fleetSize">Fleet size <span class="value-readout" id="fleetSizeRead">1</span> <span class="opt-tag">trucks</span></label>
+    <input type="range" id="fleetSize" min="1" max="100" value="1" class="slider" />
+    <div class="slider-ticks"><span>1</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
   </div>
 
-  <div class="convert-card">
-    <div class="convert-summary" id="convertSummary"></div>
+  <div class="form-group">
+    <label for="homeState">Home state</label>
+    <select id="homeState"><!-- populated by JS --></select>
+  </div>
 
-    <div class="convert-ctas">
-      <a class="btn btn-primary btn-xl" href="https://calendly.com/agbexar-gigasphere/product-walkthrough-giga-sphere-os" target="_blank" rel="noopener">Start Free Trial</a>
-      <button class="btn btn-ghost" id="downloadConfig">Download your configuration</button>
-      <a class="btn btn-link" href="https://calendly.com/agbexar-gigasphere/product-walkthrough-giga-sphere-os" target="_blank" rel="noopener">Talk to our team</a>
+  <div class="form-group">
+    <label>Vehicle classification</label>
+    <div class="seg-list" id="vehicleClassList"><!-- populated by JS --></div>
+  </div>
+
+  <div class="form-group">
+    <label for="driverCount">Number of drivers</label>
+    <input type="number" id="driverCount" min="0" step="1" value="1" inputmode="numeric" />
+  </div>
+
+  <div class="step-actions">
+    <button class="btn btn-ghost" data-nav="back">Back</button>
+    <button class="btn btn-primary" data-nav="next">Continue</button>
+  </div>
+</section>
+
+<!-- ============================== STEP 7 — MODULES ============================== -->
+<section class="step" data-step="7" data-step-label="Your stack" data-step-num="6">
+  <h2 class="step-title">Build your stack</h2>
+  <p class="step-sub">Select the modules you need. Your price updates in real time.</p>
+
+  <div class="modules-list" id="modulesList"><!-- populated by JS --></div>
+
+  <!-- Sticky price bar pinned to bottom of viewport (inside section so it only shows here) -->
+  <div class="sticky-price-bar" id="modulePriceBar">
+    <div class="spb-label">Your stack</div>
+    <div class="spb-amount"><span id="modulePriceMonthly">$0</span><span class="spb-suffix">/mo</span></div>
+  </div>
+
+  <div class="step-actions has-sticky">
+    <button class="btn btn-ghost" data-nav="back">Back</button>
+    <button class="btn btn-primary" data-nav="next" id="step7Next" disabled>Continue</button>
+  </div>
+</section>
+
+<!-- ============================== STEP 8 — REVIEW ============================== -->
+<section class="step" data-step="8" data-step-label="Review" data-step-num="7">
+  <h2 class="step-title">Review your build</h2>
+  <p class="step-sub">Looks right? Start your free trial.</p>
+
+  <div class="billing-toggle">
+    <button class="bt-option active" data-billing="monthly">Monthly</button>
+    <button class="bt-option" data-billing="annual">Annual <span class="bt-badge">Save 15%</span></button>
+  </div>
+
+  <div class="review-card" id="reviewSummary"><!-- populated by JS --></div>
+
+  <div class="price-block">
+    <div class="price-block-label" id="priceLabel">Total per month</div>
+    <div class="price-block-amount" id="priceAmount">$0</div>
+    <div class="price-block-note" id="priceNote"></div>
+  </div>
+
+  <ul class="trust-list">
+    <li><span class="trust-icon">🛡️</span> 7-day free trial — card required</li>
+    <li><span class="trust-icon">🛡️</span> 30-day money-back guarantee</li>
+  </ul>
+
+  <div class="step-actions">
+    <button class="btn btn-ghost" data-nav="back">Back</button>
+    <button class="btn btn-primary" data-nav="next">Start Free Trial</button>
+  </div>
+</section>
+
+<!-- ============================== STEP 9 — DASHBOARD SANDBOX ============================== -->
+<section class="step dashboard" data-step="9">
+  <div class="dash-top">
+    <div class="dash-greeting">
+      <h2 id="dashGreeting">Dashboard</h2>
+      <p class="dash-sub" id="dashSub">Welcome to your sandbox.</p>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="dashRestart">Restart Demo</button>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-card-head">
+      <h3>This Week</h3>
+      <span class="kpi-card-period">May 11 – May 17</span>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Net Profit</div>
+        <div class="kpi-value gold">$0.00</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Revenue</div>
+        <div class="kpi-value">$0.00</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Expenses</div>
+        <div class="kpi-value">$0.00</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Loads</div>
+        <div class="kpi-value">0</div>
+      </div>
     </div>
   </div>
 
-  <div class="step-actions">
-    <button class="btn btn-ghost" data-back>← Back</button>
-    <div></div>
+  <div class="metric-row">
+    <div class="metric-card">
+      <div class="metric-label">Miles this week</div>
+      <div class="metric-value">0</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Profit / mile</div>
+      <div class="metric-value">$0.00</div>
+    </div>
   </div>
+
+  <div class="month-card">
+    <div class="month-card-head">
+      <h3>This Month</h3>
+      <span class="month-card-period">May 2026</span>
+    </div>
+    <table class="month-table">
+      <tbody>
+        <tr><td>Revenue</td><td class="num">$0.00</td></tr>
+        <tr><td>Fuel</td><td class="num">$0.00</td></tr>
+        <tr><td>Fixed costs</td><td class="num">$0.00</td></tr>
+        <tr><td>Other expenses</td><td class="num">$0.00</td></tr>
+        <tr class="row-total"><td>Net</td><td class="num gold">$0.00</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="section-h">Quick actions</h3>
+  <div class="quick-actions">
+    <button class="qa-btn">
+      <span class="qa-icon">＋</span>
+      <span class="qa-label">Add Load</span>
+    </button>
+    <button class="qa-btn">
+      <span class="qa-icon">✓</span>
+      <span class="qa-label">View Compliance</span>
+    </button>
+    <button class="qa-btn">
+      <span class="qa-icon">📊</span>
+      <span class="qa-label">Run Reports</span>
+    </button>
+    <button class="qa-btn">
+      <span class="qa-icon">⚙</span>
+      <span class="qa-label">Settings</span>
+    </button>
+  </div>
+
+  <div class="empty-state">
+    <div class="empty-icon">🚚</div>
+    <h4>No loads yet</h4>
+    <p>Add your first load to start tracking.</p>
+    <button class="btn btn-primary">＋ Add Load</button>
+  </div>
+
+  <div class="modules-active" id="modulesActive"><!-- populated by JS --></div>
+
+  <!-- Mobile bottom nav -->
+  <nav class="bottom-nav">
+    <button class="bn-item active"><span class="bn-icon">🏠</span><span class="bn-label">Dashboard</span></button>
+    <button class="bn-item"><span class="bn-icon">📋</span><span class="bn-label">Loads</span></button>
+    <button class="bn-item"><span class="bn-icon">📊</span><span class="bn-label">Reports</span></button>
+    <button class="bn-item"><span class="bn-icon">👤</span><span class="bn-label">Profile</span></button>
+  </nav>
 </section>
 
 </main>
-
-<footer class="app-footer">
-  <span>© Giga-Sphere OS, LLC</span>
-  <span class="dot">•</span>
-  <span>Powered by Giga-Sphere</span>
-</footer>
 
 <script src="app.js"></script>
 </body>
