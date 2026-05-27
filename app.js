@@ -60,6 +60,7 @@
   const MODULES = [
     {
       id: 'gigabooks',
+      code: 'GSO-MOD-BOOKS',
       name: 'GigaBooks',
       desc: 'Bookkeeping, tax filing, and IRS-ready reports for trucking operators.',
       tiers: { basic: 29, pro: 79, enterprise: 149 },
@@ -67,6 +68,7 @@
     },
     {
       id: 'fleet',
+      code: 'GSO-MOD-FLEET',
       name: 'Fleet Management',
       desc: 'Drivers, trucks, trailers, dispatch, and maintenance tracking.',
       tiers: { basic: 39, pro: 99, enterprise: 199 },
@@ -74,13 +76,47 @@
     },
     {
       id: 'compliance',
+      code: 'GSO-MOD-COMP',
       name: 'Compliance Engine',
       desc: 'FMCSA, DOT, IFTA, IRP, MCS-150 — automated 50-state coverage.',
       tiers: { basic: 49, pro: 119, enterprise: 229 },
       recommendedFor: ['all'],
     },
     {
+      id: 'compliance_calendar',
+      code: 'GSO-MOD-CAL',
+      name: 'Compliance Calendar',
+      desc: 'DOT, FMCSA, permits, filings, renewals, and due dates in one audit-ready calendar.',
+      tiers: { basic: 19, pro: 49, enterprise: 99 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'dynamic_reminder_calendar',
+      code: 'GSO-MOD-REM',
+      name: 'Dynamic Reminder Calendar',
+      desc: 'Automated reminders that surface upcoming, overdue, and high-risk compliance work.',
+      tiers: { basic: 19, pro: 49, enterprise: 99 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'document_vault',
+      code: 'GSO-MOD-VAULT',
+      name: 'Document Vault',
+      desc: 'Centralized document storage for registrations, permits, driver files, and audit packets.',
+      tiers: { basic: 19, pro: 49, enterprise: 99 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'invoice_capture',
+      code: 'GSO-MOD-INVCAP',
+      name: 'Invoice Capture',
+      desc: 'Capture invoices, receipts, and expense proof into the customer workspace.',
+      tiers: { basic: 19, pro: 49, enterprise: 99 },
+      recommendedFor: ['all'],
+    },
+    {
       id: 'ifta',
+      code: 'GSO-MOD-IFTA',
       name: 'IFTA Reporting',
       desc: 'Quarterly IFTA calculations with state-by-state mileage and fuel.',
       tiers: { basic: 19, pro: 49, enterprise: 99 },
@@ -88,6 +124,7 @@
     },
     {
       id: 'payroll',
+      code: 'GSO-MOD-PAYHR',
       name: 'Payroll & HR',
       desc: 'Driver pay (per mile, %, flat), settlements, 1099s, W-2s.',
       tiers: { basic: 29, pro: 79, enterprise: 149 },
@@ -95,13 +132,87 @@
     },
     {
       id: 'onboarding',
+      code: 'GSO-MOD-DRVONB',
       name: 'Driver Onboarding',
       desc: 'DQ files, drug & alcohol clearinghouse, MVRs, contract e-sign.',
       tiers: { basic: 19, pro: 59, enterprise: 119 },
       recommendedFor: ['all'],
     },
     {
+      id: 'repair_work_orders',
+      code: 'GSO-MOD-REPAIR',
+      name: 'Repair Work Orders',
+      desc: 'Repair tickets, service status, safety-critical flags, authorization, and closeout tracking.',
+      tiers: { basic: 29, pro: 79, enterprise: 149 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'inventory_center',
+      code: 'GSO-MOD-INVCTR',
+      name: 'Inventory Center',
+      desc: 'Parts, tires, reorder points, vendor inventory, and fleet maintenance stock controls.',
+      tiers: { basic: 29, pro: 79, enterprise: 149 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'warranty_tracking',
+      code: 'GSO-MOD-WARR',
+      name: 'Warranty Tracking',
+      desc: 'Warranty windows tied to repairs, parts, invoices, vendors, and renewal reminders.',
+      tiers: { basic: 19, pro: 49, enterprise: 99 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'vendor_directory',
+      code: 'GSO-MOD-VENDOR',
+      name: 'Vendor Directory',
+      desc: 'Approved shops, vendors, contacts, warranty providers, and service history.',
+      tiers: { basic: 19, pro: 49, enterprise: 99 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'reporting_dashboard',
+      code: 'GSO-MOD-RPT',
+      name: 'Reporting Dashboard',
+      desc: 'Operational and compliance reporting for owners who need fast oversight.',
+      tiers: { basic: 29, pro: 79, enterprise: 149 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'driver_assistant',
+      code: 'GSO-MOD-DRVAI',
+      name: 'Driver Assistant',
+      desc: 'Driver-facing assistant for compliance tasks, document requests, and operational guidance.',
+      tiers: { basic: 49, pro: 119, enterprise: 229 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'driver_updates',
+      code: 'GSO-MOD-DRVUPD',
+      name: 'Driver Updates / Newsletter',
+      desc: 'Tenant-ready driver update stream for compliance reminders, operating notices, and newsletters.',
+      tiers: { basic: 29, pro: 79, enterprise: 149 },
+      recommendedFor: ['all'],
+    },
+    {
+      id: 'route_readiness',
+      code: 'GSO-MOD-ROUTE',
+      name: 'Route Compliance Readiness',
+      desc: 'Route-aware compliance checks for permits, inspections, roadside readiness, and audit exposure.',
+      tiers: { basic: 49, pro: 119, enterprise: 229 },
+      recommendedFor: ['hazmat','tanker','reefer','flatbed','autohaul','daycab','sleeper'],
+    },
+    {
+      id: 'onboarding_progress',
+      code: 'GSO-MOD-ONBSTAT',
+      name: 'Client Onboarding Progress Link',
+      desc: 'Shareable onboarding status view for customers, admins, counsel, and stakeholders.',
+      tiers: { basic: 29, pro: 79, enterprise: 149 },
+      recommendedFor: ['all'],
+    },
+    {
       id: 'hazmat',
+      code: 'GSO-MOD-HAZ',
       name: 'Hazmat Compliance',
       desc: 'Hazmat manifest generation, placarding rules, route restrictions.',
       tiers: { basic: 39, pro: 89, enterprise: 169 },
@@ -109,6 +220,7 @@
     },
     {
       id: 'temp',
+      code: 'GSO-MOD-TEMP',
       name: 'Temperature Logs',
       desc: 'Reefer audit trail, temp alerts, FSMA-ready cold chain records.',
       tiers: { basic: 25, pro: 65, enterprise: 119 },
@@ -116,6 +228,7 @@
     },
     {
       id: 'securement',
+      code: 'GSO-MOD-SECURE',
       name: 'Load Securement Logs',
       desc: 'Chains, straps, photos — proof-of-securement for every flat load.',
       tiers: { basic: 19, pro: 49, enterprise: 99 },
@@ -123,6 +236,7 @@
     },
     {
       id: 'shipment',
+      code: 'GSO-MOD-SHIP',
       name: 'Digital Shipment Mgmt',
       desc: 'eBOL, POD capture, customer portal, detention tracking.',
       tiers: { basic: 29, pro: 79, enterprise: 149 },
@@ -132,6 +246,11 @@
 
   const TIERS = ['basic','pro','enterprise'];
   const TIER_LABELS = { basic: 'Basic', pro: 'Pro', enterprise: 'Enterprise' };
+  const LAUNCH_PLANS = {
+    operator: { code: 'GSO-PLAN-OL', name: 'Operator Launch', base: 199, included: 1, extra: 29 },
+    fleet: { code: 'GSO-PLAN-FP', name: 'Fleet Pro', base: 499, included: 5, extra: 49 },
+    command: { code: 'GSO-PLAN-CC', name: 'Compliance Command', base: 1250, included: 10, extra: 79 },
+  };
   const STORAGE_KEY = 'gigaBuildConfiguration';
   const SALES_EMAIL = 'armando@gigasphere.io';
   const WALKTHROUGH_URL = 'https://scheduler.zoom.us/armando-galvan-holbrook/product-walkthrough-giga-sphere-os';
@@ -170,6 +289,10 @@
 
     // Step 8
     billing: 'monthly',
+
+    // Checkout
+    domain: '',
+    termsAccepted: false,
   };
 
   const TOTAL_STEPS = 9;
@@ -433,7 +556,7 @@
             ${TIERS.map((t) => `
               <button type="button" class="tier-btn ${sel.tier === t ? 'active' : ''}" data-tier="${t}" data-mod="${m.id}">
                 <span class="tier-name">${TIER_LABELS[t]}</span>
-                <span class="tier-price">${money(m.tiers[t])}/mo</span>
+                <span class="tier-price">Included</span>
               </button>
             `).join('')}
           </div>
@@ -472,8 +595,32 @@
       .map((m) => ({ ...m, tier: state.modules[m.id].tier, price: m.tiers[state.modules[m.id].tier] }));
   }
 
+  function launchPlan() {
+    const mods = selectedModulesList();
+    const highRiskModules = new Set([
+      'compliance',
+      'hazmat',
+      'temp',
+      'securement',
+      'shipment',
+      'repair_work_orders',
+      'inventory_center',
+      'warranty_tracking',
+      'reporting_dashboard',
+      'driver_assistant',
+      'driver_updates',
+      'route_readiness',
+      'onboarding_progress',
+    ]);
+    const highRiskCount = mods.filter((m) => highRiskModules.has(m.id)).length;
+    if (state.fleetSize >= 10 || mods.length >= 6 || highRiskCount >= 3) return LAUNCH_PLANS.command;
+    if (state.fleetSize >= 3 || mods.length >= 3 || highRiskCount >= 2) return LAUNCH_PLANS.fleet;
+    return LAUNCH_PLANS.operator;
+  }
+
   function monthlyTotal() {
-    return selectedModulesList().reduce((sum, m) => sum + m.price, 0);
+    const plan = launchPlan();
+    return plan.base + Math.max(0, Number(state.fleetSize || 1) - plan.included) * plan.extra;
   }
 
   function updatePriceBar() {
@@ -526,10 +673,14 @@
       `Average MPG: ${state.avgMpg || 'Not provided'}`,
       `Weekly Fixed Costs: ${state.weeklyFixed ? '$' + state.weeklyFixed : 'Not provided'}`,
       `Billing Preference: ${billingSummary()}`,
+      `Launch Plan: ${launchPlan().name}`,
+      `Launch Plan Code: ${launchPlan().code}`,
       `Configured Monthly Stack: ${money(monthlyTotal())}/mo`,
+      `Requested Domain: ${state.domain || 'Not provided'}`,
+      'Refund Terms: 30-day money-back guarantee applies to subscription fees. Domain registration and custom build work are non-refundable once started.',
       '',
       'Selected Modules:',
-      ...mods.map((m) => `- ${m.name}: ${TIER_LABELS[m.tier]} (${money(m.price)}/mo)`),
+      ...mods.map((m) => `- ${m.name}: ${TIER_LABELS[m.tier]}`),
       '',
       'Requested next step:',
       'Convert this configuration into an active Giga-Sphere OS workspace and walkthrough plan.',
@@ -580,7 +731,7 @@
             : mods.map((m) => `
               <div class="review-module-row">
                 <span>${m.name}</span>
-                <span><span class="rm-tier">${TIER_LABELS[m.tier]}</span> &nbsp; ${money(m.price)}/mo</span>
+                <span><span class="rm-tier">${TIER_LABELS[m.tier]}</span> &nbsp; Included</span>
               </div>
             `).join('')}
         </div>
@@ -640,7 +791,7 @@
     $('#packetVehicleClass').textContent = state.vehicleClass;
     $('#packetDrivers').textContent = String(state.driverCount);
     $('#packetPrice').textContent = `${money(monthlyTotal())}/mo`;
-    $('#activationNextStep').textContent = `Packet ${activationId()} is ready. Download it, email it to Giga-Sphere, or book the walkthrough so this configuration can become an active workspace.`;
+    $('#activationNextStep').textContent = `Packet ${activationId()} is ready under ${launchPlan().name}. Confirm the workspace domain, accept the refund/non-refundable terms, then launch through secure Stripe checkout.`;
 
     const pills = $('#modulesActive');
     const mods = selectedModulesList();
@@ -685,6 +836,74 @@
     window.location.href = `mailto:${SALES_EMAIL}?subject=${subject}&body=${body}`;
   }
 
+  function checkoutStatus(message, isError = false) {
+    const el = $('#checkoutStatus');
+    if (!el) return;
+    el.textContent = message || '';
+    el.style.color = isError ? '#ffb4a8' : 'var(--gold)';
+  }
+
+  function checkoutPayload() {
+    const mods = selectedModulesList();
+    return {
+      fullName: state.fullName,
+      companyName: state.companyName,
+      domain: state.domain,
+      freightType: state.freightType,
+      homeState: state.homeState,
+      vehicleClass: state.vehicleClass,
+      fleetSize: state.fleetSize,
+      driverCount: state.driverCount,
+      billing: state.billing,
+      launchPlan: launchPlan().name,
+      monthlyTotal: monthlyTotal(),
+      modules: mods.map((m) => ({
+        id: m.id,
+        code: m.code,
+        name: m.name,
+        tier: m.tier,
+        price: 0,
+      })),
+      refundTermsAccepted: state.termsAccepted,
+    };
+  }
+
+  async function createCheckout(btn) {
+    if (!state.domain.trim()) {
+      checkoutStatus('Enter the domain where this workspace should launch.', true);
+      $('#customDomain')?.focus();
+      return;
+    }
+    if (!state.termsAccepted) {
+      checkoutStatus('Confirm the subscription refund and non-refundable domain/custom-build terms.', true);
+      $('#termsAccepted')?.focus();
+      return;
+    }
+
+    const labelEl = btn?.querySelector('.qa-label, .bn-label') || btn;
+    const original = labelEl?.textContent;
+    if (labelEl) labelEl.textContent = 'Opening checkout...';
+    if (btn) btn.disabled = true;
+    checkoutStatus('Opening secure Stripe checkout...');
+
+    try {
+      const response = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(checkoutPayload()),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.checkoutUrl) {
+        throw new Error(result.error || 'Checkout could not be created.');
+      }
+      window.location.href = result.checkoutUrl;
+    } catch (err) {
+      checkoutStatus(err.message || 'Checkout is not available yet.', true);
+      if (labelEl && original) labelEl.textContent = original;
+      if (btn) btn.disabled = false;
+    }
+  }
+
   function flashAction(btn, label) {
     if (!btn) return;
     const labelEl = btn.querySelector('.qa-label, .bn-label') || btn;
@@ -702,6 +921,7 @@
       if (action === 'email') emailPacket();
       if (action === 'book') window.open(WALKTHROUGH_URL, '_blank', 'noopener');
       if (action === 'edit') show(7);
+      if (action === 'checkout') createCheckout(btn);
       if (action === 'copy') {
         try {
           await copyPacket(btn);
@@ -723,12 +943,20 @@
       ['flatRate',    (v) => { state.flatRate    = v; }],
       ['avgMpg',      (v) => { state.avgMpg      = v; }],
       ['weeklyFixed', (v) => { state.weeklyFixed = v; }],
+      ['customDomain', (v) => { state.domain = v; }],
     ];
     bindings.forEach(([id, setter]) => {
       const el = document.getElementById(id);
       if (!el) return;
       el.addEventListener('input', () => setter(el.value));
     });
+
+    const terms = document.getElementById('termsAccepted');
+    if (terms) {
+      terms.addEventListener('change', () => {
+        state.termsAccepted = terms.checked;
+      });
+    }
   }
 
   function wireNav() {
@@ -754,6 +982,8 @@
         fleetSize: 1, homeState: 'TX', vehicleClass: 'DOT Required', driverCount: 1,
         modules: {},
         billing: 'monthly',
+        domain: '',
+        termsAccepted: false,
       });
 
       $$('input[type="text"], input[type="number"], input[type="email"]').forEach((i) => { i.value = ''; });
@@ -761,6 +991,9 @@
       $('#fleetSizeRead').textContent = '1';
       $('#driverCount').value = 1;
       $('#homeState').value = 'TX';
+      const terms = $('#termsAccepted');
+      if (terms) terms.checked = false;
+      checkoutStatus('');
 
       $$('.freight-card, .pay-card, .pct-base-option, .tier-btn').forEach((el) => el.classList.remove('active'));
       $$('#vehicleClassList .seg').forEach((b) => b.classList.toggle('active', b.dataset.vc === 'DOT Required'));

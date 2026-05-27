@@ -91,12 +91,12 @@
     </p>
 
     <div class="hero-ctas">
-      <button class="btn btn-primary btn-wide" data-nav="next">Create Free Account <span aria-hidden="true">→</span></button>
+      <button class="btn btn-primary btn-wide" data-nav="next">Configure Workspace <span aria-hidden="true">→</span></button>
       <a class="btn btn-ghost btn-wide" href="https://gigasphere.io">View Sales Page</a>
     </div>
 
     <ul class="hero-meta" aria-label="GigaBuild capability summary">
-      <li><span class="meta-k">13</span><span class="meta-v">Modules</span></li>
+      <li><span class="meta-k">23</span><span class="meta-v">Modules</span></li>
       <li><span class="meta-k">50</span><span class="meta-v">States</span></li>
       <li><span class="meta-k">7</span><span class="meta-v">Languages</span></li>
       <li><span class="meta-k">WORM</span><span class="meta-v">Evidence</span></li>
@@ -429,10 +429,19 @@
   </div>
 
   <div class="activation-card">
-    <h4>Client-ready next step</h4>
-    <p id="activationNextStep">Download or email this configuration packet, then book a walkthrough to convert it into an active Giga-Sphere OS workspace.</p>
+    <h4>Launch your workspace</h4>
+    <p id="activationNextStep">Review the configuration, confirm your domain, then launch through secure Stripe checkout.</p>
+    <div class="checkout-panel">
+      <label class="checkout-label" for="customDomain">Workspace domain</label>
+      <input id="customDomain" class="checkout-input" type="text" inputmode="url" placeholder="fleet.yourcompany.com" autocomplete="url" />
+      <label class="checkout-check">
+        <input id="termsAccepted" type="checkbox" />
+        <span>Subscription fees include a 30-day money-back guarantee. Domain registration and custom build work are non-refundable once started.</span>
+      </label>
+      <p class="checkout-status" id="checkoutStatus" role="status" aria-live="polite"></p>
+    </div>
     <div class="activation-actions">
-      <button class="btn btn-primary" type="button" data-action="email">Send Configuration Email</button>
+      <button class="btn btn-primary" type="button" data-action="checkout">Pay &amp; Launch Workspace</button>
       <button class="btn btn-ghost" type="button" data-action="copy">Copy Packet Text</button>
     </div>
   </div>

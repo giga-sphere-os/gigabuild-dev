@@ -1,0 +1,106 @@
+{
+  "version": "2026.05.26",
+  "currency": "USD",
+  "codeSystem": {
+    "prefix": "GSO",
+    "families": {
+      "PLAN": "Recurring subscription plan",
+      "MOD": "Configurable software module",
+      "SVC": "Founder-led service engagement",
+      "PROV": "Provisioning, hosting, or domain item"
+    }
+  },
+  "plans": [
+    {
+      "code": "GSO-PLAN-OL",
+      "name": "Operator Launch",
+      "category": "subscription",
+      "priceMonthly": 199,
+      "includedTrucks": 1,
+      "additionalTruckMonthly": 29,
+      "status": "active",
+      "public": true
+    },
+    {
+      "code": "GSO-PLAN-FP",
+      "name": "Fleet Pro",
+      "category": "subscription",
+      "priceMonthly": 499,
+      "includedTrucks": 5,
+      "additionalTruckMonthly": 49,
+      "status": "active",
+      "public": true
+    },
+    {
+      "code": "GSO-PLAN-CC",
+      "name": "Compliance Command",
+      "category": "subscription",
+      "priceMonthly": 1250,
+      "includedTrucks": 10,
+      "additionalTruckMonthly": 79,
+      "status": "active",
+      "public": true
+    }
+  ],
+  "services": [
+    {
+      "code": "GSO-SVC-DISC",
+      "name": "Discovery Sprint",
+      "category": "custom-build",
+      "publicPrice": "Starts at 7500",
+      "status": "active",
+      "public": true
+    },
+    {
+      "code": "GSO-SVC-CUSTOM90",
+      "name": "Founder-Led 90-Day Custom Build",
+      "category": "custom-build",
+      "publicPrice": "Starts at 95000",
+      "status": "active",
+      "public": true
+    },
+    {
+      "code": "GSO-SVC-BTX-FOUNDING",
+      "name": "BTX Founding Client Custom Build",
+      "category": "private-founder-pricing",
+      "privatePrice": "45000 total over 90 days",
+      "status": "private",
+      "public": false
+    }
+  ],
+  "modules": [
+    { "code": "GSO-MOD-BOOKS", "name": "GigaBooks", "category": "finance", "sourceApp": "gigabooks.dev", "status": "active" },
+    { "code": "GSO-MOD-FLEET", "name": "Fleet Management", "category": "fleet-operations", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-COMP", "name": "Compliance Engine", "category": "compliance", "sourceApp": "gigasphere.io", "status": "active" },
+    { "code": "GSO-MOD-CAL", "name": "Compliance Calendar", "category": "compliance", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-REM", "name": "Dynamic Reminder Calendar", "category": "compliance", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-VAULT", "name": "Document Vault", "category": "records", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-INVCAP", "name": "Invoice Capture", "category": "finance", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-IFTA", "name": "IFTA Reporting", "category": "tax", "sourceApp": "gigasphere.io", "status": "building" },
+    { "code": "GSO-MOD-PAYHR", "name": "Payroll & HR", "category": "finance", "sourceApp": "gigasphere.io", "status": "building" },
+    { "code": "GSO-MOD-DRVONB", "name": "Driver Onboarding", "category": "driver-compliance", "sourceApp": "gigasphere.io", "status": "building" },
+    { "code": "GSO-MOD-REPAIR", "name": "Repair Work Orders", "category": "maintenance", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-INVCTR", "name": "Inventory Center", "category": "maintenance", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-WARR", "name": "Warranty Tracking", "category": "maintenance", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-VENDOR", "name": "Vendor Directory", "category": "maintenance", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-RPT", "name": "Reporting Dashboard", "category": "analytics", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-DRVAI", "name": "Driver Assistant", "category": "ai-assistant", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-DRVUPD", "name": "Driver Updates / Newsletter", "category": "communications", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-ROUTE", "name": "Route Compliance Readiness", "category": "route-compliance", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-ONBSTAT", "name": "Client Onboarding Progress Link", "category": "client-success", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-HAZ", "name": "Hazmat Compliance", "category": "specialized-compliance", "sourceApp": "gigasphere.io", "status": "building" },
+    { "code": "GSO-MOD-TEMP", "name": "Temperature Logs", "category": "specialized-compliance", "sourceApp": "gigasphere.io", "status": "building" },
+    { "code": "GSO-MOD-SECURE", "name": "Load Securement Logs", "category": "specialized-compliance", "sourceApp": "gigasphere.io", "status": "building" },
+    { "code": "GSO-MOD-SHIP", "name": "Digital Shipment Management", "category": "shipment-operations", "sourceApp": "gigasphere.io", "status": "planned" }
+  ],
+  "analytics": {
+    "primaryMetrics": [
+      "orders_by_catalog_code",
+      "monthly_recurring_revenue_by_plan",
+      "module_attach_rate",
+      "best_sellers",
+      "refunds_by_catalog_code",
+      "custom_build_pipeline_value"
+    ]
+  }
+}
