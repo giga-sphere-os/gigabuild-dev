@@ -3,13 +3,22 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#0d1f35" />
+<meta name="theme-color" content="#0a0e17" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="GigaBuild" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
 <title>Giga-Build — Build Your Compliance Operating System</title>
 <meta name="description" content="Configure your Giga-Sphere modules. AI-powered setup, live in under 30 minutes." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="styles.css?v=20260526-redesign" />
 </head>
 <body>
 
@@ -33,28 +42,80 @@
 
 <!-- ============================== STEP 1 — WELCOME ============================== -->
 <section class="step active welcome" data-step="1">
-  <div class="welcome-inner">
-    <div class="welcome-logo">GS</div>
-    <h1 class="welcome-title">Giga-Build</h1>
-    <p class="welcome-sub">Build your compliance operating system.</p>
+  <aside class="command-rail" aria-label="Giga-Sphere sections">
+    <a class="rail-item active" href="https://gigasphere.io" aria-label="Giga-Sphere home">
+      <span class="rail-icon">⌂</span>
+    </a>
+    <a class="rail-item" href="https://gigasphere.io/#modules" aria-label="Modules">
+      <span class="rail-icon">▦</span>
+    </a>
+    <a class="rail-item" href="https://gigasphere.io/#pricing" aria-label="Pricing">
+      <span class="rail-icon">≡</span>
+    </a>
+    <button class="rail-item rail-button" type="button" data-nav="next" aria-label="Start configurator">
+      <span class="rail-icon">→</span>
+    </button>
+  </aside>
 
-    <ul class="value-props">
-      <li>
-        <span class="vp-check">✓</span>
-        <span>Configure your modules — pay only for what you need.</span>
-      </li>
-      <li>
-        <span class="vp-check">✓</span>
-        <span>AI-powered setup — live in under 30 minutes.</span>
-      </li>
-      <li>
-        <span class="vp-check">✓</span>
-        <span>50-state compliance engine built in.</span>
-      </li>
+  <header class="landing-nav">
+    <a class="landing-brand" href="https://gigasphere.io" aria-label="Open Giga-Sphere OS">
+      <span class="landing-mark">◉</span>
+      <span>Giga-Sphere <strong>OS</strong></span>
+    </a>
+    <nav class="landing-links" aria-label="GigaBuild links">
+      <a href="https://gigasphere.io/#problem">Problem</a>
+      <a href="https://gigasphere.io/#modules">Modules</a>
+      <a href="https://gigasphere.io/#pricing">Pricing</a>
+      <a href="https://gigasphere.io/#worm">WORM</a>
+    </nav>
+    <button class="landing-nav-cta" type="button" data-nav="next">Start Build</button>
+  </header>
+
+  <div class="hero-bg" aria-hidden="true">
+    <div class="hero-grid"></div>
+    <div class="hero-light hero-light-amber"></div>
+    <div class="hero-light hero-light-violet"></div>
+  </div>
+
+  <div class="welcome-inner">
+    <div class="badge"><span class="dot"></span> AI configurator · Connected to Giga-Sphere OS</div>
+    <h1 class="welcome-title">
+      <span>GigaBuild</span>
+      <span class="amber">AI</span>
+    </h1>
+    <p class="welcome-sub">
+      Configure the compliance operating system your freight business actually needs.
+    </p>
+    <p class="welcome-copy">
+      Build a module stack from the same compliance-forward ecosystem shown on GigaSphere.io: bookkeeping, fleet operations, DOT/FMCSA controls, IFTA/IRP support, driver onboarding, and evidence-ready reporting.
+    </p>
+
+    <div class="hero-ctas">
+      <button class="btn btn-primary btn-wide" data-nav="next">Create Free Account <span aria-hidden="true">→</span></button>
+      <a class="btn btn-ghost btn-wide" href="https://gigasphere.io">View Sales Page</a>
+    </div>
+
+    <ul class="hero-meta" aria-label="GigaBuild capability summary">
+      <li><span class="meta-k">13</span><span class="meta-v">Modules</span></li>
+      <li><span class="meta-k">50</span><span class="meta-v">States</span></li>
+      <li><span class="meta-k">7</span><span class="meta-v">Languages</span></li>
+      <li><span class="meta-k">WORM</span><span class="meta-v">Evidence</span></li>
     </ul>
 
-    <button class="btn btn-primary btn-block" data-nav="next">Create Free Account</button>
-    <p class="signin-line">Already have an account? <a href="#" class="link-gold">Sign In</a></p>
+    <div class="build-preview" aria-label="Configurator preview">
+      <div class="preview-row">
+        <span class="preview-k">Operation</span>
+        <span class="preview-v">Expedite freight · DOT/FMCSA ready</span>
+      </div>
+      <div class="preview-row">
+        <span class="preview-k">Stack</span>
+        <span class="preview-v">GigaBooks + Fleet + Compliance</span>
+      </div>
+      <div class="preview-row">
+        <span class="preview-k">Output</span>
+        <span class="preview-v">Trial-ready configured workspace</span>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -259,7 +320,7 @@
 <!-- ============================== STEP 8 — REVIEW ============================== -->
 <section class="step" data-step="8" data-step-label="Review" data-step-num="7">
   <h2 class="step-title">Review your build</h2>
-  <p class="step-sub">Looks right? Start your free trial.</p>
+  <p class="step-sub">Looks right? Generate your activation packet and send it to Giga-Sphere.</p>
 
   <div class="billing-toggle">
     <button class="bt-option active" data-billing="monthly">Monthly</button>
@@ -275,113 +336,115 @@
   </div>
 
   <ul class="trust-list">
-    <li><span class="trust-icon">🛡️</span> 7-day free trial — card required</li>
-    <li><span class="trust-icon">🛡️</span> 30-day money-back guarantee</li>
+    <li><span class="trust-icon">✓</span> Your configured build packet is generated immediately.</li>
+    <li><span class="trust-icon">✓</span> You can download, email, and book from the next screen.</li>
   </ul>
 
   <div class="step-actions">
     <button class="btn btn-ghost" data-nav="back">Back</button>
-    <button class="btn btn-primary" data-nav="next">Start Free Trial</button>
+    <button class="btn btn-primary" data-nav="next">Generate Activation Packet</button>
   </div>
 </section>
 
-<!-- ============================== STEP 9 — DASHBOARD SANDBOX ============================== -->
+<!-- ============================== STEP 9 — ACTIVATION WORKSPACE ============================== -->
 <section class="step dashboard" data-step="9">
   <div class="dash-top">
     <div class="dash-greeting">
-      <h2 id="dashGreeting">Dashboard</h2>
-      <p class="dash-sub" id="dashSub">Welcome to your sandbox.</p>
+      <h2 id="dashGreeting">Activation workspace</h2>
+      <p class="dash-sub" id="dashSub">Your configuration is ready.</p>
     </div>
-    <button class="btn btn-ghost btn-sm" id="dashRestart">Restart Demo</button>
+    <button class="btn btn-ghost btn-sm" id="dashRestart">Start Over</button>
   </div>
 
   <div class="kpi-card">
     <div class="kpi-card-head">
-      <h3>This Week</h3>
-      <span class="kpi-card-period">May 11 – May 17</span>
+      <h3>Build Summary</h3>
+      <span class="kpi-card-period" id="activationId">Ready</span>
     </div>
     <div class="kpi-grid">
       <div class="kpi">
-        <div class="kpi-label">Net Profit</div>
-        <div class="kpi-value gold">$0.00</div>
+        <div class="kpi-label">Monthly Stack</div>
+        <div class="kpi-value gold" id="dashMonthly">$0</div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Revenue</div>
-        <div class="kpi-value">$0.00</div>
+        <div class="kpi-label">Modules</div>
+        <div class="kpi-value" id="dashModuleCount">0</div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Expenses</div>
-        <div class="kpi-value">$0.00</div>
+        <div class="kpi-label">Fleet Size</div>
+        <div class="kpi-value" id="dashFleetSize">1</div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Loads</div>
-        <div class="kpi-value">0</div>
+        <div class="kpi-label">Billing</div>
+        <div class="kpi-value" id="dashBilling">Monthly</div>
       </div>
     </div>
   </div>
 
   <div class="metric-row">
     <div class="metric-card">
-      <div class="metric-label">Miles this week</div>
-      <div class="metric-value">0</div>
+      <div class="metric-label">Freight Type</div>
+      <div class="metric-value" id="dashFreight">—</div>
     </div>
     <div class="metric-card">
-      <div class="metric-label">Profit / mile</div>
-      <div class="metric-value">$0.00</div>
+      <div class="metric-label">Home State</div>
+      <div class="metric-value" id="dashState">—</div>
     </div>
   </div>
 
   <div class="month-card">
     <div class="month-card-head">
-      <h3>This Month</h3>
-      <span class="month-card-period">May 2026</span>
+      <h3>Activation Packet</h3>
+      <span class="month-card-period" id="packetDate">Generated today</span>
     </div>
     <table class="month-table">
       <tbody>
-        <tr><td>Revenue</td><td class="num">$0.00</td></tr>
-        <tr><td>Fuel</td><td class="num">$0.00</td></tr>
-        <tr><td>Fixed costs</td><td class="num">$0.00</td></tr>
-        <tr><td>Other expenses</td><td class="num">$0.00</td></tr>
-        <tr class="row-total"><td>Net</td><td class="num gold">$0.00</td></tr>
+        <tr><td>Account</td><td class="num" id="packetAccount">—</td></tr>
+        <tr><td>Payment Model</td><td class="num" id="packetPayment">—</td></tr>
+        <tr><td>Vehicle Class</td><td class="num" id="packetVehicleClass">—</td></tr>
+        <tr><td>Drivers</td><td class="num" id="packetDrivers">—</td></tr>
+        <tr class="row-total"><td>Configured Price</td><td class="num gold" id="packetPrice">$0/mo</td></tr>
       </tbody>
     </table>
   </div>
 
   <h3 class="section-h">Quick actions</h3>
   <div class="quick-actions">
-    <button class="qa-btn">
-      <span class="qa-icon">＋</span>
-      <span class="qa-label">Add Load</span>
+    <button class="qa-btn" type="button" data-action="download">
+      <span class="qa-icon">↓</span>
+      <span class="qa-label">Download Packet</span>
     </button>
-    <button class="qa-btn">
-      <span class="qa-icon">✓</span>
-      <span class="qa-label">View Compliance</span>
+    <button class="qa-btn" type="button" data-action="email">
+      <span class="qa-icon">@</span>
+      <span class="qa-label">Email Build</span>
     </button>
-    <button class="qa-btn">
-      <span class="qa-icon">📊</span>
-      <span class="qa-label">Run Reports</span>
+    <button class="qa-btn" type="button" data-action="book">
+      <span class="qa-icon">↗</span>
+      <span class="qa-label">Book Walkthrough</span>
     </button>
-    <button class="qa-btn">
-      <span class="qa-icon">⚙</span>
-      <span class="qa-label">Settings</span>
+    <button class="qa-btn" type="button" data-action="edit">
+      <span class="qa-icon">↺</span>
+      <span class="qa-label">Edit Build</span>
     </button>
   </div>
 
-  <div class="empty-state">
-    <div class="empty-icon">🚚</div>
-    <h4>No loads yet</h4>
-    <p>Add your first load to start tracking.</p>
-    <button class="btn btn-primary">＋ Add Load</button>
+  <div class="activation-card">
+    <h4>Client-ready next step</h4>
+    <p id="activationNextStep">Download or email this configuration packet, then book a walkthrough to convert it into an active Giga-Sphere OS workspace.</p>
+    <div class="activation-actions">
+      <button class="btn btn-primary" type="button" data-action="email">Send Configuration Email</button>
+      <button class="btn btn-ghost" type="button" data-action="copy">Copy Packet Text</button>
+    </div>
   </div>
 
   <div class="modules-active" id="modulesActive"><!-- populated by JS --></div>
 
   <!-- Mobile bottom nav -->
   <nav class="bottom-nav">
-    <button class="bn-item active"><span class="bn-icon">🏠</span><span class="bn-label">Dashboard</span></button>
-    <button class="bn-item"><span class="bn-icon">📋</span><span class="bn-label">Loads</span></button>
-    <button class="bn-item"><span class="bn-icon">📊</span><span class="bn-label">Reports</span></button>
-    <button class="bn-item"><span class="bn-icon">👤</span><span class="bn-label">Profile</span></button>
+    <button class="bn-item active" type="button" data-action="copy"><span class="bn-icon">□</span><span class="bn-label">Copy</span></button>
+    <button class="bn-item" type="button" data-action="download"><span class="bn-icon">↓</span><span class="bn-label">Download</span></button>
+    <button class="bn-item" type="button" data-action="email"><span class="bn-icon">@</span><span class="bn-label">Email</span></button>
+    <button class="bn-item" type="button" data-action="book"><span class="bn-icon">↗</span><span class="bn-label">Book</span></button>
   </nav>
 </section>
 

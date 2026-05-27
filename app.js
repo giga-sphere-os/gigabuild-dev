@@ -132,6 +132,9 @@
 
   const TIERS = ['basic','pro','enterprise'];
   const TIER_LABELS = { basic: 'Basic', pro: 'Pro', enterprise: 'Enterprise' };
+  const STORAGE_KEY = 'gigaBuildConfiguration';
+  const SALES_EMAIL = 'armando@gigasphere.io';
+  const WALKTHROUGH_URL = 'https://scheduler.zoom.us/armando-galvan-holbrook/product-walkthrough-giga-sphere-os';
 
   /* -------------------- STATE -------------------- */
 
@@ -181,6 +184,22 @@
     const safe = Number.isFinite(n) ? n : 0;
     return '$' + safe.toLocaleString('en-US', { maximumFractionDigits: 0 });
   };
+
+  const todayLabel = () => new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+
+  function activationId() {
+    const source = `${state.fullName}|${state.companyName}|${state.freightType}|${monthlyTotal()}|${selectedModulesList().map((m) => m.id + m.tier).join('-')}`;
+    let hash = 0;
+    for (let i = 0; i < source.length; i += 1) {
+      hash = ((hash << 5) - hash) + source.charCodeAt(i);
+      hash |= 0;
+    }
+    return `GB-${Math.abs(hash).toString(36).toUpperCase().slice(0, 6)}`;
+  }
 
   /* -------------------- NAVIGATION -------------------- */
 
@@ -245,6 +264,11 @@
 
   function next() {
     if (!canAdvance(state.step)) return;
+    if (state.step === 8) {
+      show(9);
+      persistConfiguration();
+      return;
+    }
     if (state.step < TOTAL_STEPS) show(state.step + 1);
   }
   function back() {
@@ -479,6 +503,53 @@
     return f ? f.name : '—';
   }
 
+  function billingSummary() {
+    if (state.billing === 'annual') {
+      const annual = Math.round(monthlyTotal() * 12 * 0.85);
+      return `Annual (${money(annual)} billed yearly)`;
+    }
+    return 'Monthly';
+  }
+
+  function configurationPacketText() {
+    const mods = selectedModulesList();
+    const lines = [
+      'GigaBuild Activation Packet',
+      `Activation ID: ${activationId()}`,
+      `Generated: ${todayLabel()}`,
+      '',
+      `Name: ${state.fullName || 'Not provided'}`,
+      `Company: ${state.companyName || 'Not provided'}`,
+      `Freight Type: ${freightLabel()}`,
+      `Payment Model: ${paymentSummary()}`,
+      `Fleet: ${state.fleetSize} truck${state.fleetSize === 1 ? '' : 's'} | ${state.driverCount} driver${state.driverCount === 1 ? '' : 's'} | ${state.homeState} | ${state.vehicleClass}`,
+      `Average MPG: ${state.avgMpg || 'Not provided'}`,
+      `Weekly Fixed Costs: ${state.weeklyFixed ? '$' + state.weeklyFixed : 'Not provided'}`,
+      `Billing Preference: ${billingSummary()}`,
+      `Configured Monthly Stack: ${money(monthlyTotal())}/mo`,
+      '',
+      'Selected Modules:',
+      ...mods.map((m) => `- ${m.name}: ${TIER_LABELS[m.tier]} (${money(m.price)}/mo)`),
+      '',
+      'Requested next step:',
+      'Convert this configuration into an active Giga-Sphere OS workspace and walkthrough plan.',
+    ];
+    return lines.join('\n');
+  }
+
+  function persistConfiguration() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        savedAt: new Date().toISOString(),
+        activationId: activationId(),
+        state: { ...state },
+        packet: configurationPacketText(),
+      }));
+    } catch (_) {
+      // localStorage can be unavailable in strict privacy modes; the packet still renders.
+    }
+  }
+
   function renderReview() {
     const card = $('#reviewSummary');
     const mods = selectedModulesList();
@@ -554,13 +625,91 @@
 
     greeting.textContent = firstName ? `Hey, ${firstName}` : 'Dashboard';
     const companyBit = state.companyName ? ` at ${state.companyName}` : '';
-    sub.textContent = `Welcome to your sandbox${companyBit}.`;
+    sub.textContent = `Your Giga-Sphere OS configuration is ready${companyBit}.`;
+
+    $('#activationId').textContent = activationId();
+    $('#packetDate').textContent = todayLabel();
+    $('#dashMonthly').textContent = `${money(monthlyTotal())}/mo`;
+    $('#dashModuleCount').textContent = String(selectedModulesList().length);
+    $('#dashFleetSize').textContent = String(state.fleetSize);
+    $('#dashBilling').textContent = state.billing === 'annual' ? 'Annual' : 'Monthly';
+    $('#dashFreight').textContent = freightLabel();
+    $('#dashState').textContent = state.homeState;
+    $('#packetAccount').textContent = state.companyName || state.fullName || '—';
+    $('#packetPayment').textContent = paymentSummary();
+    $('#packetVehicleClass').textContent = state.vehicleClass;
+    $('#packetDrivers').textContent = String(state.driverCount);
+    $('#packetPrice').textContent = `${money(monthlyTotal())}/mo`;
+    $('#activationNextStep').textContent = `Packet ${activationId()} is ready. Download it, email it to Giga-Sphere, or book the walkthrough so this configuration can become an active workspace.`;
 
     const pills = $('#modulesActive');
     const mods = selectedModulesList();
     pills.innerHTML = mods.length
       ? mods.map((m) => `<span class="ma-pill">${m.name} · ${TIER_LABELS[m.tier]}</span>`).join('')
       : '';
+  }
+
+  function downloadPacket() {
+    const blob = new Blob([configurationPacketText()], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${activationId()}-giga-build-activation-packet.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function copyPacket(btn) {
+    const packet = configurationPacketText();
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(packet);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = packet;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.left = '-999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    flashAction(btn, 'Copied');
+  }
+
+  function emailPacket() {
+    const subject = encodeURIComponent(`GigaBuild Activation Packet ${activationId()}`);
+    const body = encodeURIComponent(configurationPacketText());
+    window.location.href = `mailto:${SALES_EMAIL}?subject=${subject}&body=${body}`;
+  }
+
+  function flashAction(btn, label) {
+    if (!btn) return;
+    const labelEl = btn.querySelector('.qa-label, .bn-label') || btn;
+    const original = labelEl.textContent;
+    labelEl.textContent = label;
+    window.setTimeout(() => { labelEl.textContent = original; }, 1400);
+  }
+
+  function wireActivationActions() {
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      if (action === 'download') downloadPacket();
+      if (action === 'email') emailPacket();
+      if (action === 'book') window.open(WALKTHROUGH_URL, '_blank', 'noopener');
+      if (action === 'edit') show(7);
+      if (action === 'copy') {
+        try {
+          await copyPacket(btn);
+        } catch (_) {
+          flashAction(btn, 'Copy failed');
+        }
+      }
+    });
   }
 
   /* -------------------- GENERIC INPUT BINDING -------------------- */
@@ -621,6 +770,7 @@
       $('#condPercentage').hidden = true;
       $('#condFlat').hidden = true;
 
+      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
       updateNextEnabled();
       show(1);
     });
@@ -638,6 +788,7 @@
     bindTextInputs();
     wireNav();
     wireRestart();
+    wireActivationActions();
 
     toggleConditionals();
     updateNextEnabled();

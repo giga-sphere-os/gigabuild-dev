@@ -1,10 +1,10 @@
-# Giga-Build — Beta Sandbox Configurator
+# Giga-Build — Production Configurator
 
-Trucker-native onboarding flow for the Giga-Sphere platform. Prospects walk through 9 quick screens (name → freight → payment → costs → fleet → modules → review → dashboard preview) and end up with a configured stack and a sandbox they can poke at. Deploys to **gigabuild.dev** (domain owned on Porkbun; Vercel hookup pending).
+Trucker-native onboarding flow for the Giga-Sphere platform. Prospects walk through 9 quick screens (name → freight → payment → costs → fleet → modules → review → activation workspace) and end with a configured stack, a downloadable activation packet, an email-ready build summary, and a direct walkthrough booking path. Deploys to **gigabuild.dev** on Vercel.
 
 - **Stack:** static HTML/CSS/JS — no framework, no build step
-- **State:** single in-memory `state` object on `window.gigaBuild` (no backend)
-- **Brand:** Navy `#0d1f35` / Gold `#e8a020` / White — Barlow Condensed (display) + Inter (body)
+- **State:** single in-memory `state` object on `window.gigaBuild` plus a local saved activation packet for the completed configuration
+- **Brand:** Giga-Sphere command-center shell with dark grid field, gold accent, and PWA install support
 - **Theme:** dark, mobile-first, animated progress bar, one question per screen
 - **Inspiration:** Load Ledger's onboarding UX — built for phones, in the truck cab
 
@@ -36,15 +36,10 @@ Or just double-click `index.html` — it works straight from the file system.
 Each step is a `<section class="step" data-step="N">`. Only the active step is visible; navigation animates a fade-up transition. The progress bar fills proportionally to **Step X of 7** — only steps 2–8 show the header and progress bar. Step 1 (welcome) and Step 9 (dashboard) hide them.
 
 ### Step 1 — Welcome (no step counter)
-- 60×60 gold "GS" logo tile
-- Heading: *"Giga-Build"*
-- Sub: *"Build your compliance operating system."*
-- Three value props with gold checkmarks:
-  - Configure your modules — pay only for what you need.
-  - AI-powered setup — live in under 30 minutes.
-  - 50-state compliance engine built in.
-- Gold CTA: **Create Free Account** → advances to Step 2
-- *"Already have an account? Sign In"* link below
+- Giga-Sphere style command rail, sticky glass nav, grid field, and amber AI headline
+- Primary CTA: **Create Free Account** → advances to Step 2
+- Secondary CTA: **View Sales Page** → opens `gigasphere.io`
+- Capability proof row: 13 modules · 50 states · 7 languages · WORM evidence
 
 ### Step 2 — About you (Step 1 of 7)
 - Gold user-silhouette icon
@@ -102,19 +97,22 @@ Each step is a `<section class="step" data-step="N">`. Only the active step is v
 - Monthly / Annual billing toggle (annual = 15% off; shown as $/mo equivalent + total billed once a year)
 - Summary card lists: Account · Freight · Payment method · Fleet line · Modules with tiers and per-line $/mo
 - Big gold price block (label + amount + secondary note)
-- Two trust badges: 🛡️ 7-day free trial — card required · 🛡️ 30-day money-back guarantee
-- Gold CTA: **Start Free Trial** → advances to Step 9 sandbox
+- Two readiness notes explaining that the activation packet is generated immediately and can be downloaded, emailed, and booked from the next screen
+- Gold CTA: **Generate Activation Packet** → advances to Step 9
 
-### Step 9 — Your dashboard (sandbox preview, no progress chrome)
-- Personalized header: *"Hey, {firstName}"* + *"Welcome to your sandbox at {Company}."*
-- **This Week** KPI card: Net Profit (gold) / Revenue / Expenses / Loads (all $0 / 0 — empty sandbox)
-- Two metric cards: Miles this week · Profit / mile
-- **This Month** table: Revenue / Fuel / Fixed costs / Other / Net row in gold
-- Quick Actions 2×2 grid: ＋ Add Load · ✓ View Compliance · 📊 Run Reports · ⚙ Settings
-- Empty-state card with truck emoji + *"No loads yet — Add your first load to start tracking."* + gold Add Load button
-- Pills under empty state list the selected modules with their tier (so the user sees their stack)
-- Fixed bottom nav: Dashboard / Loads / Reports / Profile
-- **Restart Demo** button (top-right) wipes state and returns to Step 1
+### Step 9 — Activation workspace (no progress chrome)
+- Personalized header: *"Hey, {firstName}"* + readiness copy for the generated configuration
+- **Build Summary** KPI card: monthly stack price, module count, fleet size, billing preference
+- Metric cards: freight type and home state
+- **Activation Packet** table: account, payment model, vehicle class, drivers, configured price
+- Working quick actions:
+  - **Download Packet** creates a text activation packet in-browser
+  - **Email Build** opens a prefilled email to Giga-Sphere
+  - **Book Walkthrough** opens the product walkthrough scheduler
+  - **Edit Build** returns to the module-selection step
+- Copy Packet Text action uses the clipboard where available, with a fallback copy path
+- Fixed bottom nav mirrors the same working actions for mobile
+- **Start Over** wipes state and returns to Step 1
 
 ---
 
@@ -146,7 +144,7 @@ window.gigaBuild = {
 };
 ```
 
-State persists in memory only — navigating back and forth never loses prior answers, but a page refresh resets to Step 1. No backend, no localStorage.
+State persists in memory while the user moves through the configurator. On activation, the generated packet is also saved to `localStorage` under `gigaBuildConfiguration` so the completed build can survive a refresh in the installed PWA/browser session. No backend credentials or secrets are required.
 
 ---
 
@@ -185,11 +183,9 @@ To add a module: append an entry to `MODULES`. Filtering and pricing pick it up 
 
 ## Deployment
 
-Not yet deployed. Plan:
+Production deploy target: **https://www.gigabuild.dev**
 
-1. Push repo to GitHub (`giga-sphere-os/gigabuild-dev`)
-2. Connect to Vercel (zero config — static)
-3. Point Porkbun-owned `gigabuild.dev` at Vercel via DNS records
+Static Vercel deployment. No build command is required.
 
 Per repo canon: no Apps Script, no Drive MCP for >14 KB. This site doesn't write to any Giga-Sphere data plane — it's a pure marketing/configurator surface. No service account, no secrets, no backend.
 

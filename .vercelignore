@@ -1,5 +1,6 @@
+.git/
+.vercel/
+.claude/
 .DS_Store
 node_modules/
-.vercel
-.claude/
 *.log
