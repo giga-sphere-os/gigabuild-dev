@@ -69,7 +69,7 @@
     }
   ],
   "modules": [
-    { "code": "GSO-MOD-BOOKS", "name": "GigaBooks", "category": "finance", "sourceApp": "gigabooks.dev", "status": "active" },
+    { "code": "GSO-MOD-BOOKS", "name": "GigaBooks", "category": "finance", "sourceApp": "gigabooks.app", "status": "active" },
     { "code": "GSO-MOD-FLEET", "name": "Fleet Management", "category": "fleet-operations", "sourceApp": "gigafleet.dev", "status": "active" },
     { "code": "GSO-MOD-COMP", "name": "Compliance Engine", "category": "compliance", "sourceApp": "gigasphere.io", "status": "active" },
     { "code": "GSO-MOD-CAL", "name": "Compliance Calendar", "category": "compliance", "sourceApp": "gigafleet.dev", "status": "active" },
@@ -82,11 +82,11 @@
     { "code": "GSO-MOD-REPAIR", "name": "Repair Work Orders", "category": "maintenance", "sourceApp": "gigafleet.dev", "status": "active" },
     { "code": "GSO-MOD-INVCTR", "name": "Inventory Center", "category": "maintenance", "sourceApp": "gigafleet.dev", "status": "active" },
     { "code": "GSO-MOD-WARR", "name": "Warranty Tracking", "category": "maintenance", "sourceApp": "gigafleet.dev", "status": "active" },
-    { "code": "GSO-MOD-VENDOR", "name": "Vendor Directory", "category": "maintenance", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-VENDOR", "name": "Vendor Directory", "category": "maintenance", "sourceApp": "gigafleet.dev", "status": "building" },
     { "code": "GSO-MOD-RPT", "name": "Reporting Dashboard", "category": "analytics", "sourceApp": "gigafleet.dev", "status": "active" },
     { "code": "GSO-MOD-DRVAI", "name": "Driver Assistant", "category": "ai-assistant", "sourceApp": "gigafleet.dev", "status": "active" },
-    { "code": "GSO-MOD-DRVUPD", "name": "Driver Updates / Newsletter", "category": "communications", "sourceApp": "gigafleet.dev", "status": "active" },
-    { "code": "GSO-MOD-ROUTE", "name": "Route Compliance Readiness", "category": "route-compliance", "sourceApp": "gigafleet.dev", "status": "active" },
+    { "code": "GSO-MOD-DRVUPD", "name": "Driver Updates / Newsletter", "category": "communications", "sourceApp": "gigafleet.dev", "status": "building" },
+    { "code": "GSO-MOD-ROUTE", "name": "Route Compliance Readiness", "category": "route-compliance", "sourceApp": "gigafleet.dev", "status": "building" },
     { "code": "GSO-MOD-ONBSTAT", "name": "Client Onboarding Progress Link", "category": "client-success", "sourceApp": "gigafleet.dev", "status": "active" },
     { "code": "GSO-MOD-HAZ", "name": "Hazmat Compliance", "category": "specialized-compliance", "sourceApp": "gigasphere.io", "status": "building" },
     { "code": "GSO-MOD-TEMP", "name": "Temperature Logs", "category": "specialized-compliance", "sourceApp": "gigasphere.io", "status": "building" },

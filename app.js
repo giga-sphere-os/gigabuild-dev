@@ -63,6 +63,7 @@
       code: 'GSO-MOD-BOOKS',
       name: 'GigaBooks',
       desc: 'Bookkeeping, tax filing, and IRS-ready reports for trucking operators.',
+      status: 'live',
       tiers: { basic: 29, pro: 79, enterprise: 149 },
       recommendedFor: ['all'],
     },
@@ -71,6 +72,7 @@
       code: 'GSO-MOD-FLEET',
       name: 'Fleet Management',
       desc: 'Drivers, trucks, trailers, dispatch, and maintenance tracking.',
+      status: 'live',
       tiers: { basic: 39, pro: 99, enterprise: 199 },
       recommendedFor: ['all'],
     },
@@ -78,7 +80,8 @@
       id: 'compliance',
       code: 'GSO-MOD-COMP',
       name: 'Compliance Engine',
-      desc: 'FMCSA, DOT, IFTA, IRP, MCS-150 — automated 50-state coverage.',
+      desc: 'FMCSA/DOT tracking, renewal workflows, document proof, and WORM evidence records.',
+      status: 'live',
       tiers: { basic: 49, pro: 119, enterprise: 229 },
       recommendedFor: ['all'],
     },
@@ -87,6 +90,7 @@
       code: 'GSO-MOD-CAL',
       name: 'Compliance Calendar',
       desc: 'DOT, FMCSA, permits, filings, renewals, and due dates in one audit-ready calendar.',
+      status: 'live',
       tiers: { basic: 19, pro: 49, enterprise: 99 },
       recommendedFor: ['all'],
     },
@@ -95,6 +99,7 @@
       code: 'GSO-MOD-REM',
       name: 'Dynamic Reminder Calendar',
       desc: 'Automated reminders that surface upcoming, overdue, and high-risk compliance work.',
+      status: 'live',
       tiers: { basic: 19, pro: 49, enterprise: 99 },
       recommendedFor: ['all'],
     },
@@ -103,6 +108,7 @@
       code: 'GSO-MOD-VAULT',
       name: 'Document Vault',
       desc: 'Centralized document storage for registrations, permits, driver files, and audit packets.',
+      status: 'live',
       tiers: { basic: 19, pro: 49, enterprise: 99 },
       recommendedFor: ['all'],
     },
@@ -111,6 +117,7 @@
       code: 'GSO-MOD-INVCAP',
       name: 'Invoice Capture',
       desc: 'Capture invoices, receipts, and expense proof into the customer workspace.',
+      status: 'live',
       tiers: { basic: 19, pro: 49, enterprise: 99 },
       recommendedFor: ['all'],
     },
@@ -119,6 +126,7 @@
       code: 'GSO-MOD-IFTA',
       name: 'IFTA Reporting',
       desc: 'Quarterly IFTA calculations with state-by-state mileage and fuel.',
+      status: 'comingSoon',
       tiers: { basic: 19, pro: 49, enterprise: 99 },
       recommendedFor: ['daycab','sleeper','flatbed','reefer','tanker','dump','hotshot','box','autohaul'],
     },
@@ -127,6 +135,7 @@
       code: 'GSO-MOD-PAYHR',
       name: 'Payroll & HR',
       desc: 'Driver pay (per mile, %, flat), settlements, 1099s, W-2s.',
+      status: 'comingSoon',
       tiers: { basic: 29, pro: 79, enterprise: 149 },
       recommendedFor: ['all'],
     },
@@ -135,6 +144,7 @@
       code: 'GSO-MOD-DRVONB',
       name: 'Driver Onboarding',
       desc: 'DQ files, drug & alcohol clearinghouse, MVRs, contract e-sign.',
+      status: 'comingSoon',
       tiers: { basic: 19, pro: 59, enterprise: 119 },
       recommendedFor: ['all'],
     },
@@ -143,6 +153,7 @@
       code: 'GSO-MOD-REPAIR',
       name: 'Repair Work Orders',
       desc: 'Repair tickets, service status, safety-critical flags, authorization, and closeout tracking.',
+      status: 'live',
       tiers: { basic: 29, pro: 79, enterprise: 149 },
       recommendedFor: ['all'],
     },
@@ -151,6 +162,7 @@
       code: 'GSO-MOD-INVCTR',
       name: 'Inventory Center',
       desc: 'Parts, tires, reorder points, vendor inventory, and fleet maintenance stock controls.',
+      status: 'live',
       tiers: { basic: 29, pro: 79, enterprise: 149 },
       recommendedFor: ['all'],
     },
@@ -159,6 +171,7 @@
       code: 'GSO-MOD-WARR',
       name: 'Warranty Tracking',
       desc: 'Warranty windows tied to repairs, parts, invoices, vendors, and renewal reminders.',
+      status: 'live',
       tiers: { basic: 19, pro: 49, enterprise: 99 },
       recommendedFor: ['all'],
     },
@@ -167,6 +180,7 @@
       code: 'GSO-MOD-VENDOR',
       name: 'Vendor Directory',
       desc: 'Approved shops, vendors, contacts, warranty providers, and service history.',
+      status: 'comingSoon',
       tiers: { basic: 19, pro: 49, enterprise: 99 },
       recommendedFor: ['all'],
     },
@@ -175,6 +189,7 @@
       code: 'GSO-MOD-RPT',
       name: 'Reporting Dashboard',
       desc: 'Operational and compliance reporting for owners who need fast oversight.',
+      status: 'live',
       tiers: { basic: 29, pro: 79, enterprise: 149 },
       recommendedFor: ['all'],
     },
@@ -183,6 +198,7 @@
       code: 'GSO-MOD-DRVAI',
       name: 'Driver Assistant',
       desc: 'Driver-facing assistant for compliance tasks, document requests, and operational guidance.',
+      status: 'live',
       tiers: { basic: 49, pro: 119, enterprise: 229 },
       recommendedFor: ['all'],
     },
@@ -191,6 +207,7 @@
       code: 'GSO-MOD-DRVUPD',
       name: 'Driver Updates / Newsletter',
       desc: 'Tenant-ready driver update stream for compliance reminders, operating notices, and newsletters.',
+      status: 'comingSoon',
       tiers: { basic: 29, pro: 79, enterprise: 149 },
       recommendedFor: ['all'],
     },
@@ -199,6 +216,7 @@
       code: 'GSO-MOD-ROUTE',
       name: 'Route Compliance Readiness',
       desc: 'Route-aware compliance checks for permits, inspections, roadside readiness, and audit exposure.',
+      status: 'comingSoon',
       tiers: { basic: 49, pro: 119, enterprise: 229 },
       recommendedFor: ['hazmat','tanker','reefer','flatbed','autohaul','daycab','sleeper'],
     },
@@ -207,6 +225,7 @@
       code: 'GSO-MOD-ONBSTAT',
       name: 'Client Onboarding Progress Link',
       desc: 'Shareable onboarding status view for customers, admins, counsel, and stakeholders.',
+      status: 'live',
       tiers: { basic: 29, pro: 79, enterprise: 149 },
       recommendedFor: ['all'],
     },
@@ -215,6 +234,7 @@
       code: 'GSO-MOD-HAZ',
       name: 'Hazmat Compliance',
       desc: 'Hazmat manifest generation, placarding rules, route restrictions.',
+      status: 'comingSoon',
       tiers: { basic: 39, pro: 89, enterprise: 169 },
       recommendedFor: ['tanker'],
     },
@@ -223,6 +243,7 @@
       code: 'GSO-MOD-TEMP',
       name: 'Temperature Logs',
       desc: 'Reefer audit trail, temp alerts, FSMA-ready cold chain records.',
+      status: 'comingSoon',
       tiers: { basic: 25, pro: 65, enterprise: 119 },
       recommendedFor: ['reefer'],
     },
@@ -231,6 +252,7 @@
       code: 'GSO-MOD-SECURE',
       name: 'Load Securement Logs',
       desc: 'Chains, straps, photos — proof-of-securement for every flat load.',
+      status: 'comingSoon',
       tiers: { basic: 19, pro: 49, enterprise: 99 },
       recommendedFor: ['flatbed','autohaul'],
     },
@@ -239,6 +261,7 @@
       code: 'GSO-MOD-SHIP',
       name: 'Digital Shipment Mgmt',
       desc: 'eBOL, POD capture, customer portal, detention tracking.',
+      status: 'comingSoon',
       tiers: { basic: 29, pro: 79, enterprise: 149 },
       recommendedFor: ['all'],
     },
@@ -252,6 +275,8 @@
     command: { code: 'GSO-PLAN-CC', name: 'Compliance Command', base: 1250, included: 10, extra: 79 },
   };
   const STORAGE_KEY = 'gigaBuildConfiguration';
+  const LANG_STORAGE_KEY = 'gigasphere.lang';
+  const SUPPORTED_LANGS = new Set(['en', 'es-MX', 'zh-CN', 'tl', 'vi', 'ar', 'hi']);
   const SALES_EMAIL = 'armando@gigasphere.io';
   const WALKTHROUGH_URL = 'https://scheduler.zoom.us/armando-galvan-holbrook/product-walkthrough-giga-sphere-os';
 
@@ -367,7 +392,7 @@
         if (state.paymentMethod === 'percentage' && !state.pctBase) return false;
         return true;
       }
-      case 7: return Object.values(state.modules).some((m) => m.enabled);
+      case 7: return selectedModulesList().length > 0;
       default: return true;
     }
   }
@@ -540,8 +565,10 @@
     list.innerHTML = mods.map((m) => {
       const sel = state.modules[m.id] || { enabled: false, tier: 'basic' };
       const isRecommended = m.recommendedFor.includes(state.freightType) && !m.recommendedFor.includes('all');
+      const isLive = m.status === 'live';
       return `
-        <div class="module-card ${sel.enabled ? 'active' : ''}" data-mod="${m.id}">
+        <div class="module-card ${sel.enabled && isLive ? 'active' : ''} ${!isLive ? 'coming-soon' : ''}" data-mod="${m.id}">
+          ${!isLive ? '<div class="module-coming-banner">Coming soon</div>' : ''}
           <div class="module-head">
             <div class="module-head-text">
               <div class="module-name">
@@ -550,13 +577,13 @@
               </div>
               <p class="module-desc">${m.desc}</p>
             </div>
-            <button type="button" class="module-toggle" data-toggle="${m.id}" aria-label="Toggle ${m.name}"></button>
+            <button type="button" class="module-toggle" data-toggle="${m.id}" aria-label="Toggle ${m.name}" ${!isLive ? 'disabled aria-disabled="true"' : ''}></button>
           </div>
           <div class="tier-row">
             ${TIERS.map((t) => `
-              <button type="button" class="tier-btn ${sel.tier === t ? 'active' : ''}" data-tier="${t}" data-mod="${m.id}">
+              <button type="button" class="tier-btn ${sel.tier === t && isLive ? 'active' : ''}" data-tier="${t}" data-mod="${m.id}" ${!isLive ? 'disabled aria-disabled="true"' : ''}>
                 <span class="tier-name">${TIER_LABELS[t]}</span>
-                <span class="tier-price">Included</span>
+                <span class="tier-price">${isLive ? 'Included' : 'Coming soon'}</span>
               </button>
             `).join('')}
           </div>
@@ -568,6 +595,8 @@
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const id = btn.dataset.toggle;
+        const mod = MODULES.find((m) => m.id === id);
+        if (!mod || mod.status !== 'live') return;
         const cur = state.modules[id] || { enabled: false, tier: 'basic' };
         state.modules[id] = { enabled: !cur.enabled, tier: cur.tier };
         renderModules();
@@ -579,6 +608,8 @@
     $$('.tier-btn', list).forEach((btn) => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.mod;
+        const mod = MODULES.find((m) => m.id === id);
+        if (!mod || mod.status !== 'live') return;
         const tier = btn.dataset.tier;
         state.modules[id] = { enabled: true, tier };
         renderModules();
@@ -592,6 +623,7 @@
 
   function selectedModulesList() {
     return MODULES.filter((m) => state.modules[m.id] && state.modules[m.id].enabled)
+      .filter((m) => m.status === 'live')
       .map((m) => ({ ...m, tier: state.modules[m.id].tier, price: m.tiers[state.modules[m.id].tier] }));
   }
 
@@ -1009,6 +1041,28 @@
     });
   }
 
+  function wireLanguageSelector() {
+    const select = $('#lang-switch');
+    if (!select) return;
+
+    let stored = 'en';
+    try {
+      const value = localStorage.getItem(LANG_STORAGE_KEY);
+      if (value && SUPPORTED_LANGS.has(value)) stored = value;
+    } catch (_) {}
+
+    const applyLang = (lang) => {
+      const next = SUPPORTED_LANGS.has(lang) ? lang : 'en';
+      document.documentElement.lang = next === 'en' ? 'en' : next;
+      document.documentElement.dir = next === 'ar' ? 'rtl' : 'ltr';
+      select.value = next;
+      try { localStorage.setItem(LANG_STORAGE_KEY, next); } catch (_) {}
+    };
+
+    select.addEventListener('change', (event) => applyLang(event.target.value));
+    applyLang(stored);
+  }
+
   /* -------------------- INIT -------------------- */
 
   function init() {
@@ -1022,6 +1076,7 @@
     wireNav();
     wireRestart();
     wireActivationActions();
+    wireLanguageSelector();
 
     toggleConditionals();
     updateNextEnabled();
