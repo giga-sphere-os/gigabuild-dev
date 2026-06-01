@@ -1,0 +1,15 @@
+{
+  "appId": "io.gigasphere.gigabuild",
+  "appName": "GigaBuild",
+  "webDir": "dist-mobile",
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "scrollEnabled": true
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

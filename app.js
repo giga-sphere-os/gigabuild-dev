@@ -280,6 +280,7 @@
   const SUPPORTED_LANGS = new Set(['en', 'es-MX', 'zh-CN', 'tl', 'vi', 'ar', 'hi']);
   const SALES_EMAIL = 'armando@gigasphere.io';
   const WALKTHROUGH_URL = 'https://scheduler.zoom.us/armando-galvan-holbrook/product-walkthrough-giga-sphere-os';
+  const NATIVE_TEST_PARAM = 'native-app';
 
   /* -------------------- STATE -------------------- */
 
@@ -341,6 +342,23 @@
     month: 'short',
     day: 'numeric',
   });
+
+  function isNativeApp() {
+    const cap = window.Capacitor;
+    if (cap && typeof cap.isNativePlatform === 'function') return cap.isNativePlatform();
+    try {
+      return new URLSearchParams(window.location.search).has(NATIVE_TEST_PARAM);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function applyRuntimeMode() {
+    const native = isNativeApp();
+    document.body.classList.toggle('gb-native', native);
+    $$('[data-web-commerce-only]').forEach((el) => { el.hidden = native; });
+    $$('[data-native-commerce-note]').forEach((el) => { el.hidden = !native; });
+  }
 
   function activationId() {
     const source = `${state.fullName}|${state.companyName}|${state.freightType}|${monthlyTotal()}|${selectedModulesList().map((m) => m.id + m.tier).join('-')}`;
@@ -981,7 +999,9 @@
     $('#packetVehicleClass').textContent = state.vehicleClass;
     $('#packetDrivers').textContent = String(state.driverCount);
     $('#packetPrice').textContent = `${money(monthlyTotal())}/mo`;
-    $('#activationNextStep').textContent = `Packet ${activationId()} is ready under ${launchPlan().name}. Confirm the workspace domain, accept the refund/non-refundable terms, then launch through secure Stripe checkout.`;
+    $('#activationNextStep').textContent = isNativeApp()
+      ? `Packet ${activationId()} is ready under ${launchPlan().name}. Book a walkthrough to finalize workspace launch outside the native app.`
+      : `Packet ${activationId()} is ready under ${launchPlan().name}. Confirm the workspace domain, accept the refund/non-refundable terms, then launch through secure Stripe checkout.`;
 
     const pills = $('#modulesActive');
     const mods = selectedModulesList();
@@ -1063,6 +1083,12 @@
   }
 
   async function createCheckout(btn) {
+    if (isNativeApp()) {
+      checkoutStatus('Workspace payment and launch are completed outside the native app. Book a walkthrough to continue.');
+      window.open(WALKTHROUGH_URL, '_blank', 'noopener');
+      return;
+    }
+
     if (!state.domain.trim()) {
       checkoutStatus('Enter the domain where this workspace should launch.', true);
       $('#customDomain')?.focus();
@@ -1245,6 +1271,7 @@
   /* -------------------- INIT -------------------- */
 
   function init() {
+    applyRuntimeMode();
     renderFreightGrid();
     renderPaymentList();
     renderHomeStateDropdown();

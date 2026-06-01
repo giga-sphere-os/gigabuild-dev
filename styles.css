@@ -1455,6 +1455,21 @@ select {
   font-size: 12px;
 }
 
+.native-commerce-note {
+  margin: 14px 0 0;
+  padding: 14px;
+  border: 1px solid rgba(232,160,32,.28);
+  border-radius: var(--radius-sm);
+  background: rgba(232,160,32,.08);
+  color: rgba(255,255,255,.84);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+body.gb-native .checkout-panel {
+  display: none;
+}
+
 .resume-banner {
   position: fixed;
   left: 50%;

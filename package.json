@@ -7,13 +7,21 @@
     "dev": "vercel dev --listen 5173 --yes",
     "serve": "python3 -m http.server 5173",
     "migrate:prod": "bash scripts/apply-production-migration.sh",
+    "mobile:prepare": "bash scripts/prepare-capacitor-web.sh",
+    "mobile:sync": "npm run mobile:prepare && npx cap sync",
+    "mobile:open:ios": "npx cap open ios",
+    "mobile:open:android": "npx cap open android",
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
+    "@capacitor/core": "^8.3.4",
     "@supabase/supabase-js": "^2.99.2",
     "stripe": "^21.0.1"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/cli": "^8.3.4",
+    "@capacitor/ios": "^8.3.4",
     "jsdom": "^27.2.0"
   }
 }

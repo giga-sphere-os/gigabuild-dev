@@ -32,6 +32,8 @@ Or just double-click `index.html` — it works straight from the file system.
 | `api/stripe-webhook.js` | Signed Stripe webhook handling, payment validation, DNS-gated domain provisioning |
 | `privacy.html` | Privacy policy path for app-store and web readiness |
 | `delete-account.html` | Account/data deletion request path for app-store readiness |
+| `capacitor.config.json` | Native iOS/Android wrapper configuration |
+| `docs/mobile-store-readiness.md` | App-store readiness checklist and commerce posture |
 
 ---
 
@@ -215,7 +217,17 @@ The migration adds `stripe_event_id`, `domain_verification_token`, a unique doma
 
 ## Mobile Commerce Posture
 
-Current posture is web/PWA checkout through Stripe. Do not ship this payment flow inside native iOS or Android wrappers until the commerce model is decided: web-only purchase, native in-app purchase, or a documented policy-qualified exception.
+Current web/PWA posture is checkout through Stripe. Native iOS and Android builds are configurator-only: they create the activation packet and support booking/contact actions, but hide the Stripe checkout button so the app does not ship an in-app Stripe purchase path.
+
+Native wrapper commands:
+
+```bash
+npm run mobile:sync
+npm run mobile:open:ios
+npm run mobile:open:android
+```
+
+See `docs/mobile-store-readiness.md` before submitting to Apple or Google.
 
 ---
 

@@ -465,8 +465,11 @@
       </label>
       <p class="checkout-status" id="checkoutStatus" role="status" aria-live="polite"></p>
     </div>
+    <p class="native-commerce-note" data-native-commerce-note hidden>
+      App-store builds create the activation packet only. Workspace payment and launch are completed with Giga-Sphere outside the native app.
+    </p>
     <div class="activation-actions">
-      <button class="btn btn-primary" type="button" data-action="checkout">Pay &amp; Launch Workspace</button>
+      <button class="btn btn-primary" type="button" data-action="checkout" data-web-commerce-only>Pay &amp; Launch Workspace</button>
       <button class="btn btn-ghost" type="button" data-action="copy">Copy Packet Text</button>
     </div>
   </div>

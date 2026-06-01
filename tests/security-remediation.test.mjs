@@ -44,3 +44,18 @@ test('app store readiness links exist', async () => {
   assert.match(privacy, /privacy@gigasphere\.io/);
   assert.match(deletion, /Delete GigaBuild Account\/Data/);
 });
+
+test('native app mode does not expose Stripe checkout as an in-app purchase path', async () => {
+  const [html, js, css, cap] = await Promise.all([
+    read('index.html'),
+    read('app.js'),
+    read('styles.css'),
+    read('capacitor.config.json'),
+  ]);
+  assert.match(cap, /"appId": "io\.gigasphere\.gigabuild"/);
+  assert.match(html, /data-web-commerce-only/);
+  assert.match(html, /data-native-commerce-note/);
+  assert.match(js, /function isNativeApp\(\)/);
+  assert.match(js, /Workspace payment and launch are completed outside the native app/);
+  assert.match(css, /body\.gb-native \.checkout-panel/);
+});
