@@ -1326,33 +1326,72 @@
     },
   };
   const escalationWords = ['checkout', 'billing', 'refund', 'cancel', 'private data', 'wrong account', 'legal', 'human', 'broken', 'error', 'failed'];
+  const adversarialWords = [
+    'ignore previous instructions',
+    'ignore all previous instructions',
+    'system prompt',
+    'hidden prompt',
+    'developer message',
+    'jailbreak',
+    'api key',
+    'secret key',
+    'print your instructions',
+    'reveal your instructions',
+    'another user',
+    "another user's",
+    'other customer',
+    'cross tenant',
+    'cross-tenant',
+  ];
+  const refusal = 'I cannot help with requests to bypass instructions, reveal hidden prompts, expose API keys, unlock paid modules, or access another customer account. I opened a security support case for human review.';
   let mode = 'configurator';
   let messages = [];
 
+  function isAdversarial(message) {
+    const text = String(message || '').toLowerCase();
+    return adversarialWords.some((word) => text.includes(word));
+  }
+
+  function redactSensitiveText(value) {
+    return String(value || '')
+      .replace(/\b\d{3}-\d{2}-\d{4}\b/g, '[REDACTED_SSN]')
+      .replace(/\b(?:\d[ -]*?){13,19}\b/g, (match) => {
+        const digits = match.replace(/\D/g, '');
+        return digits.length >= 13 && digits.length <= 19 ? '[REDACTED_CARD]' : match;
+      })
+      .replace(/\b(password|passcode|pin|secret)\s*(is|=|:)\s*([^\s,;]{4,})/gi, '$1 $2 [REDACTED_PASSWORD]')
+      .replace(/\b(api[_-]?key|access_token|account_token|bank_token|plaid_token|processor_token|routing_number|account_number)\s*(=|:|is)\s*([A-Za-z0-9._-]{6,})/gi, '$1 $2 [REDACTED_TOKEN]');
+  }
+
   function supportCase(message) {
     const text = message.toLowerCase();
-    if (!escalationWords.some((word) => text.includes(word))) return null;
+    if (!escalationWords.some((word) => text.includes(word)) && !isAdversarial(message)) return null;
     const issue = {
       id: `GBUILD-CS-${Date.now().toString(36).toUpperCase()}`,
       source: window.location.hostname,
       assistant: 'Giganaut AI',
       status: 'needs_human_review',
-      message,
+      message: redactSensitiveText(message),
       createdAt: new Date().toISOString(),
     };
     let saved = [];
     try {
-      saved = JSON.parse(localStorage.getItem('gbuild_support_cases_v1') || '[]');
+      saved = JSON.parse(sessionStorage.getItem('gbuild_support_cases_v1') || '[]');
       if (!Array.isArray(saved)) saved = [];
     } catch (_) {}
     try {
-      localStorage.setItem('gbuild_support_cases_v1', JSON.stringify([issue, ...saved].slice(0, 50)));
+      sessionStorage.setItem('gbuild_support_cases_v1', JSON.stringify([issue, ...saved].slice(0, 50)));
     } catch (_) {}
     return issue;
   }
 
   function reply(message) {
     const text = message.toLowerCase();
+    if (isAdversarial(message)) {
+      supportCase(message);
+      mode = 'support';
+      return refusal;
+    }
     const issue = supportCase(message);
     if (issue && mode === 'configurator') {
       mode = 'support';
@@ -1363,12 +1402,12 @@
       return 'Giganaut AI can help with checkout, account questions, build packet questions, and routing. Anything involving money, private data, or a broken workflow gets escalated.';
     }
     if (text.includes('first') || text.includes('lean')) {
-      return 'Gigasphere AI recommends starting with the smallest module set that protects revenue and proof: core workspace, document capture, compliance calendar, and only the modules needed for the first launch.';
+      return 'Gigasphere AI recommends starting with the smallest paid module set that protects revenue and proof: core workspace, document capture, compliance calendar, and only the modules needed for the first launch. It cannot bypass checkout or unlock modules without payment.';
     }
     if (text.includes('checkout') || text.includes('launch')) {
-      return 'Finish the activation packet, confirm the workspace domain, accept terms, then launch through secure checkout. Support issues during checkout should move to Giganaut AI.';
+      return 'Finish the activation packet, confirm the workspace domain, accept terms, then launch through secure checkout. Gigasphere AI cannot alter checkout status, payment checks, or tenant provisioning rules.';
     }
-    return 'Gigasphere AI configures the build by matching business type, operating risk, selected modules, fleet size, billing preference, and launch readiness.';
+    return 'Gigasphere AI guides the build by matching business type, operating risk, selected modules, fleet size, billing preference, and launch readiness. Final module access still depends on secure checkout and backend provisioning.';
   }
 
   function render() {
@@ -1403,7 +1442,7 @@
   function send(text) {
     const clean = String(text || '').trim();
     if (!clean) return;
-    messages.push({ role: 'user', text: clean });
+    messages.push({ role: 'user', text: redactSensitiveText(clean) });
     messages.push({ role: 'assistant', text: reply(clean) });
     input.value = '';
     render();

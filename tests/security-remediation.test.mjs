@@ -18,6 +18,16 @@ test('assistant messages are rendered as text nodes, not HTML strings', async ()
   assert.doesNotMatch(js, /log\.innerHTML\s*=\s*messages\.map/);
 });
 
+test('assistant refuses jailbreaks and redacts sensitive support text', async () => {
+  const js = await read('app.js');
+  assert.match(js, /const adversarialWords = \[/);
+  assert.match(js, /I cannot help with requests to bypass instructions/);
+  assert.match(js, /function redactSensitiveText\(value\)/);
+  assert.match(js, /REDACTED_CARD/);
+  assert.match(js, /REDACTED_PASSWORD/);
+  assert.match(js, /sessionStorage\.setItem\('gbuild_support_cases_v1'/);
+});
+
 test('checkout and webhook enforce payment and domain safety gates', async () => {
   const [checkout, webhook, sql] = await Promise.all([
     read('api/create-checkout.js'),
