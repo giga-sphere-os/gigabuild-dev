@@ -275,6 +275,7 @@
     command: { code: 'GSO-PLAN-CC', name: 'Compliance Command', base: 1250, included: 10, extra: 79 },
   };
   const STORAGE_KEY = 'gigaBuildConfiguration';
+  const DRAFT_KEY = 'gigaBuildDraft';
   const LANG_STORAGE_KEY = 'gigasphere.lang';
   const SUPPORTED_LANGS = new Set(['en', 'es-MX', 'zh-CN', 'tl', 'vi', 'ar', 'hi']);
   const SALES_EMAIL = 'armando@gigasphere.io';
@@ -327,6 +328,8 @@
 
   const $  = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  let autosaveTimer = 0;
+  let draftLoaded = false;
 
   const money = (n) => {
     const safe = Number.isFinite(n) ? n : 0;
@@ -349,10 +352,132 @@
     return `GB-${Math.abs(hash).toString(36).toUpperCase().slice(0, 6)}`;
   }
 
+  function savedState() {
+    return {
+      step: state.step,
+      fullName: state.fullName,
+      companyName: state.companyName,
+      freightType: state.freightType,
+      paymentMethod: state.paymentMethod,
+      ratePerMile: state.ratePerMile,
+      percentage: state.percentage,
+      pctBase: state.pctBase,
+      flatRate: state.flatRate,
+      avgMpg: state.avgMpg,
+      weeklyFixed: state.weeklyFixed,
+      fleetSize: state.fleetSize,
+      homeState: state.homeState,
+      vehicleClass: state.vehicleClass,
+      driverCount: state.driverCount,
+      modules: { ...state.modules },
+      billing: state.billing,
+      domain: state.domain,
+      termsAccepted: state.termsAccepted,
+    };
+  }
+
+  function hasMeaningfulDraft(snapshot = state) {
+    return Boolean(
+      snapshot.step > 1 ||
+      snapshot.fullName ||
+      snapshot.companyName ||
+      snapshot.freightType ||
+      snapshot.paymentMethod ||
+      Object.keys(snapshot.modules || {}).length ||
+      snapshot.domain
+    );
+  }
+
+  function saveDraft() {
+    if (!hasMeaningfulDraft()) return;
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        version: 2,
+        savedAt: new Date().toISOString(),
+        state: savedState(),
+      }));
+    } catch (_) {}
+  }
+
+  function scheduleDraftSave() {
+    window.clearTimeout(autosaveTimer);
+    autosaveTimer = window.setTimeout(saveDraft, 120);
+  }
+
+  function clearDraft() {
+    try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
+  }
+
+  function setInputValue(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.value = value ?? '';
+  }
+
+  function syncDomFromState() {
+    setInputValue('fullName', state.fullName);
+    setInputValue('companyName', state.companyName);
+    setInputValue('ratePerMile', state.ratePerMile);
+    setInputValue('percentage', state.percentage);
+    setInputValue('flatRate', state.flatRate);
+    setInputValue('avgMpg', state.avgMpg);
+    setInputValue('weeklyFixed', state.weeklyFixed);
+    setInputValue('customDomain', state.domain);
+
+    const fleet = $('#fleetSize');
+    const fleetRead = $('#fleetSizeRead');
+    if (fleet) fleet.value = state.fleetSize;
+    if (fleetRead) fleetRead.textContent = String(state.fleetSize);
+    setInputValue('driverCount', state.driverCount);
+    const home = $('#homeState');
+    if (home) home.value = state.homeState;
+    const terms = $('#termsAccepted');
+    if (terms) terms.checked = !!state.termsAccepted;
+
+    $$('.freight-card').forEach((el) => el.classList.toggle('active', el.dataset.freight === state.freightType));
+    $$('.pay-card').forEach((el) => el.classList.toggle('active', el.dataset.pay === state.paymentMethod));
+    $$('.pct-base-option').forEach((el) => el.classList.toggle('active', el.dataset.base === state.pctBase));
+    $$('#vehicleClassList .seg').forEach((el) => el.classList.toggle('active', el.dataset.vc === state.vehicleClass));
+    $$('.bt-option').forEach((el) => el.classList.toggle('active', el.dataset.billing === state.billing));
+    toggleConditionals();
+    updateNextEnabled();
+  }
+
+  function maybeOfferResume() {
+    let draft = null;
+    try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (_) {}
+    if (!draft?.state || !hasMeaningfulDraft(draft.state)) return;
+
+    const banner = $('#resumeBanner');
+    if (!banner) return;
+    const savedAt = draft.savedAt ? new Date(draft.savedAt) : null;
+    const meta = $('#resumeMeta');
+    if (meta && savedAt && !Number.isNaN(savedAt.getTime())) {
+      meta.textContent = `Last saved ${savedAt.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.`;
+    }
+    banner.hidden = false;
+
+    $('#resumeDraft')?.addEventListener('click', () => {
+      Object.assign(state, draft.state, {
+        modules: { ...(draft.state.modules || {}) },
+        step: Math.max(1, Math.min(TOTAL_STEPS, Number(draft.state.step || 1))),
+      });
+      draftLoaded = true;
+      banner.hidden = true;
+      syncDomFromState();
+      show(state.step);
+    }, { once: true });
+
+    $('#discardDraft')?.addEventListener('click', () => {
+      clearDraft();
+      banner.hidden = true;
+    }, { once: true });
+  }
+
   /* -------------------- NAVIGATION -------------------- */
 
   function show(stepNum) {
     state.step = stepNum;
+    document.body.classList.toggle('gb-form-step', stepNum > 1 && stepNum < 9);
     $$('.step').forEach((el) => {
       const n = Number(el.dataset.step);
       el.classList.toggle('active', n === stepNum);
@@ -380,6 +505,7 @@
     if (stepNum === 8) renderReview();
     if (stepNum === 9) renderDashboard();
 
+    if (draftLoaded || stepNum > 1) scheduleDraftSave();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -443,6 +569,7 @@
         // see a sensible starter stack on Step 7.
         seedRecommendedModules();
         updateNextEnabled();
+        scheduleDraftSave();
       });
     });
   }
@@ -468,6 +595,7 @@
         renderPctBase();
         toggleConditionals();
         updateNextEnabled();
+        scheduleDraftSave();
       });
     });
 
@@ -488,6 +616,7 @@
         state.pctBase = opt.dataset.base;
         $$('.pct-base-option', list).forEach((o) => o.classList.toggle('active', o === opt));
         updateNextEnabled();
+        scheduleDraftSave();
       });
     });
   }
@@ -503,7 +632,10 @@
   function renderHomeStateDropdown() {
     const select = $('#homeState');
     select.innerHTML = US_STATES.map((s) => `<option value="${s}" ${s === state.homeState ? 'selected' : ''}>${s}</option>`).join('');
-    select.addEventListener('change', () => { state.homeState = select.value; });
+    select.addEventListener('change', () => {
+      state.homeState = select.value;
+      scheduleDraftSave();
+    });
   }
 
   function renderVehicleClass() {
@@ -515,6 +647,7 @@
       btn.addEventListener('click', () => {
         state.vehicleClass = btn.dataset.vc;
         $$('.seg', list).forEach((b) => b.classList.toggle('active', b === btn));
+        scheduleDraftSave();
       });
     });
   }
@@ -527,6 +660,7 @@
     slider.addEventListener('input', () => {
       state.fleetSize = Number(slider.value);
       read.textContent = state.fleetSize;
+      scheduleDraftSave();
     });
 
     const driverInput = $('#driverCount');
@@ -534,6 +668,7 @@
     driverInput.addEventListener('input', () => {
       const v = Number(driverInput.value);
       state.driverCount = Number.isFinite(v) && v >= 0 ? v : 0;
+      scheduleDraftSave();
     });
   }
 
@@ -602,6 +737,7 @@
         renderModules();
         updatePriceBar();
         updateNextEnabled();
+        scheduleDraftSave();
       });
     });
 
@@ -615,6 +751,7 @@
         renderModules();
         updatePriceBar();
         updateNextEnabled();
+        scheduleDraftSave();
       });
     });
 
@@ -722,12 +859,14 @@
 
   function persistConfiguration() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      const record = {
         savedAt: new Date().toISOString(),
         activationId: activationId(),
         state: { ...state },
         packet: configurationPacketText(),
-      }));
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ version: 2, savedAt: record.savedAt, state: savedState() }));
     } catch (_) {
       // localStorage can be unavailable in strict privacy modes; the packet still renders.
     }
@@ -738,37 +877,55 @@
     const mods = selectedModulesList();
     const nameLine = state.fullName + (state.companyName ? ` · ${state.companyName}` : '');
 
-    card.innerHTML = `
-      <div class="review-block">
-        <div class="review-label">Account</div>
-        <div class="review-value">${nameLine || '—'}</div>
-      </div>
-      <div class="review-block">
-        <div class="review-label">Freight type</div>
-        <div class="review-value">${freightLabel()}</div>
-      </div>
-      <div class="review-block">
-        <div class="review-label">How you're paid</div>
-        <div class="review-value">${paymentSummary()}</div>
-      </div>
-      <div class="review-block">
-        <div class="review-label">Fleet</div>
-        <div class="review-value">${state.fleetSize} truck${state.fleetSize === 1 ? '' : 's'} · ${state.driverCount} driver${state.driverCount === 1 ? '' : 's'} · ${state.homeState} · ${state.vehicleClass}</div>
-      </div>
-      <div class="review-block">
-        <div class="review-label">Modules (${mods.length})</div>
-        <div class="review-modules">
-          ${mods.length === 0
-            ? '<div class="review-value">No modules selected</div>'
-            : mods.map((m) => `
-              <div class="review-module-row">
-                <span>${m.name}</span>
-                <span><span class="rm-tier">${TIER_LABELS[m.tier]}</span> &nbsp; Included</span>
-              </div>
-            `).join('')}
-        </div>
-      </div>
-    `;
+    card.replaceChildren();
+
+    const addBlock = (label, value) => {
+      const block = document.createElement('div');
+      block.className = 'review-block';
+      const labelEl = document.createElement('div');
+      labelEl.className = 'review-label';
+      labelEl.textContent = label;
+      const valueEl = document.createElement('div');
+      valueEl.className = 'review-value';
+      valueEl.textContent = value || '—';
+      block.append(labelEl, valueEl);
+      card.appendChild(block);
+    };
+
+    addBlock('Account', nameLine || '—');
+    addBlock('Freight type', freightLabel());
+    addBlock("How you're paid", paymentSummary());
+    addBlock('Fleet', `${state.fleetSize} truck${state.fleetSize === 1 ? '' : 's'} · ${state.driverCount} driver${state.driverCount === 1 ? '' : 's'} · ${state.homeState} · ${state.vehicleClass}`);
+
+    const moduleBlock = document.createElement('div');
+    moduleBlock.className = 'review-block';
+    const moduleLabel = document.createElement('div');
+    moduleLabel.className = 'review-label';
+    moduleLabel.textContent = `Modules (${mods.length})`;
+    const moduleList = document.createElement('div');
+    moduleList.className = 'review-modules';
+    if (!mods.length) {
+      const empty = document.createElement('div');
+      empty.className = 'review-value';
+      empty.textContent = 'No modules selected';
+      moduleList.appendChild(empty);
+    } else {
+      mods.forEach((m) => {
+        const row = document.createElement('div');
+        row.className = 'review-module-row';
+        const name = document.createElement('span');
+        name.textContent = m.name;
+        const tier = document.createElement('span');
+        const tierName = document.createElement('span');
+        tierName.className = 'rm-tier';
+        tierName.textContent = TIER_LABELS[m.tier];
+        tier.append(tierName, document.createTextNode('  Included'));
+        row.append(name, tier);
+        moduleList.appendChild(row);
+      });
+    }
+    moduleBlock.append(moduleLabel, moduleList);
+    card.appendChild(moduleBlock);
 
     updatePriceDisplay();
   }
@@ -795,6 +952,7 @@
         state.billing = btn.dataset.billing;
         $$('.bt-option').forEach((b) => b.classList.toggle('active', b === btn));
         updatePriceDisplay();
+        scheduleDraftSave();
       });
     });
   }
@@ -827,9 +985,13 @@
 
     const pills = $('#modulesActive');
     const mods = selectedModulesList();
-    pills.innerHTML = mods.length
-      ? mods.map((m) => `<span class="ma-pill">${m.name} · ${TIER_LABELS[m.tier]}</span>`).join('')
-      : '';
+    pills.replaceChildren();
+    mods.forEach((m) => {
+      const pill = document.createElement('span');
+      pill.className = 'ma-pill';
+      pill.textContent = `${m.name} · ${TIER_LABELS[m.tier]}`;
+      pills.appendChild(pill);
+    });
   }
 
   function downloadPacket() {
@@ -926,7 +1088,7 @@
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok || !result.checkoutUrl) {
-        throw new Error(result.error || 'Checkout could not be created.');
+        throw new Error(result.message || result.error || 'Checkout could not be created.');
       }
       window.location.href = result.checkoutUrl;
     } catch (err) {
@@ -980,13 +1142,17 @@
     bindings.forEach(([id, setter]) => {
       const el = document.getElementById(id);
       if (!el) return;
-      el.addEventListener('input', () => setter(el.value));
+      el.addEventListener('input', () => {
+        setter(el.value);
+        scheduleDraftSave();
+      });
     });
 
     const terms = document.getElementById('termsAccepted');
     if (terms) {
       terms.addEventListener('change', () => {
         state.termsAccepted = terms.checked;
+        scheduleDraftSave();
       });
     }
   }
@@ -1036,6 +1202,7 @@
       $('#condFlat').hidden = true;
 
       try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+      clearDraft();
       updateNextEnabled();
       show(1);
     });
@@ -1063,6 +1230,18 @@
     applyLang(stored);
   }
 
+  function wireIdentityLinks() {
+    const links = $$('[data-identity-return-current]');
+    if (!links.length) return;
+    let returnTo = 'https://www.gigabuild.dev/';
+    try {
+      returnTo = window.location.href;
+    } catch (_) {}
+    links.forEach((link) => {
+      link.href = `https://gigabooks.app/app?return_to=${encodeURIComponent(returnTo)}`;
+    });
+  }
+
   /* -------------------- INIT -------------------- */
 
   function init() {
@@ -1077,9 +1256,11 @@
     wireRestart();
     wireActivationActions();
     wireLanguageSelector();
+    wireIdentityLinks();
 
     toggleConditionals();
     updateNextEnabled();
+    maybeOfferResume();
     show(1);
   }
 
@@ -1088,4 +1269,140 @@
   } else {
     init();
   }
+})();
+
+(() => {
+  const panel = document.getElementById('gb-ai-panel');
+  const log = document.getElementById('gb-ai-log');
+  const quick = document.getElementById('gb-ai-quick');
+  const form = document.getElementById('gb-ai-form');
+  const input = document.getElementById('gb-ai-input');
+  const title = document.getElementById('gb-ai-title');
+  const dock = panel.closest('.gb-ai-dock');
+  const tabs = Array.from(document.querySelectorAll('[data-gb-ai-mode]'));
+  const openers = Array.from(document.querySelectorAll('[data-gb-ai-open]'));
+  const close = document.querySelector('[data-gb-ai-close]');
+  if (!panel || !log || !quick || !form || !input) return;
+
+  const modes = {
+    configurator: {
+      name: 'Gigasphere AI',
+      greeting: 'I am Gigasphere AI. I configure service stacks, modules, launch paths, and operating workflows. Tell me what you want to build and I will keep the setup lean.',
+      placeholder: 'Ask Gigasphere AI to configure services...',
+      quick: ['Recommend my first modules', 'Explain the launch packet', 'What should I configure first?'],
+    },
+    support: {
+      name: 'Giganaut AI',
+      greeting: 'I am Giganaut AI. I handle customer service, checkout questions, account help, and support issue routing.',
+      placeholder: 'Ask Giganaut AI for support...',
+      quick: ['Checkout help', 'I need human support', 'Report a build issue'],
+    },
+  };
+  const escalationWords = ['checkout', 'billing', 'refund', 'cancel', 'private data', 'wrong account', 'legal', 'human', 'broken', 'error', 'failed'];
+  let mode = 'configurator';
+  let messages = [];
+
+  function supportCase(message) {
+    const text = message.toLowerCase();
+    if (!escalationWords.some((word) => text.includes(word))) return null;
+    const issue = {
+      id: `GBUILD-CS-${Date.now().toString(36).toUpperCase()}`,
+      source: window.location.hostname,
+      assistant: 'Giganaut AI',
+      status: 'needs_human_review',
+      message,
+      createdAt: new Date().toISOString(),
+    };
+    let saved = [];
+    try {
+      saved = JSON.parse(localStorage.getItem('gbuild_support_cases_v1') || '[]');
+      if (!Array.isArray(saved)) saved = [];
+    } catch (_) {}
+    try {
+      localStorage.setItem('gbuild_support_cases_v1', JSON.stringify([issue, ...saved].slice(0, 50)));
+    } catch (_) {}
+    return issue;
+  }
+
+  function reply(message) {
+    const text = message.toLowerCase();
+    const issue = supportCase(message);
+    if (issue && mode === 'configurator') {
+      mode = 'support';
+      return `This is a customer service issue, so I switched it to Giganaut AI and opened support case ${issue.id}. Checkout, billing, refunds, private data, legal, account, and broken-flow issues need human review.`;
+    }
+    if (mode === 'support') {
+      if (issue) return `Support case ${issue.id} opened. Giganaut AI marked it for human review because checkout, billing, refunds, private data, legal, account, and broken-flow issues need a person.`;
+      return 'Giganaut AI can help with checkout, account questions, build packet questions, and routing. Anything involving money, private data, or a broken workflow gets escalated.';
+    }
+    if (text.includes('first') || text.includes('lean')) {
+      return 'Gigasphere AI recommends starting with the smallest module set that protects revenue and proof: core workspace, document capture, compliance calendar, and only the modules needed for the first launch.';
+    }
+    if (text.includes('checkout') || text.includes('launch')) {
+      return 'Finish the activation packet, confirm the workspace domain, accept terms, then launch through secure checkout. Support issues during checkout should move to Giganaut AI.';
+    }
+    return 'Gigasphere AI configures the build by matching business type, operating risk, selected modules, fleet size, billing preference, and launch readiness.';
+  }
+
+  function render() {
+    title.textContent = modes[mode].name;
+    input.placeholder = modes[mode].placeholder;
+    tabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.gbAiMode === mode));
+    log.replaceChildren();
+    messages.forEach((message) => {
+      const bubble = document.createElement('div');
+      bubble.className = `gb-ai-message ${message.role === 'user' ? 'user' : 'assistant'}`;
+      bubble.textContent = message.text;
+      log.appendChild(bubble);
+    });
+
+    quick.replaceChildren();
+    modes[mode].quick.forEach((label) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.gbAiPrompt = label;
+      button.textContent = label;
+      quick.appendChild(button);
+    });
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function setMode(nextMode) {
+    mode = nextMode === 'support' ? 'support' : 'configurator';
+    messages = [{ role: 'assistant', text: modes[mode].greeting }];
+    render();
+  }
+
+  function send(text) {
+    const clean = String(text || '').trim();
+    if (!clean) return;
+    messages.push({ role: 'user', text: clean });
+    messages.push({ role: 'assistant', text: reply(clean) });
+    input.value = '';
+    render();
+  }
+
+  openers.forEach((button) => {
+    button.addEventListener('click', () => {
+      setMode(button.dataset.gbAiOpen);
+      panel.hidden = false;
+      dock?.classList.add('is-open');
+      input.focus();
+    });
+  });
+  close?.addEventListener('click', () => {
+    panel.hidden = true;
+    dock?.classList.remove('is-open');
+  });
+  tabs.forEach((tab) => tab.addEventListener('click', () => setMode(tab.dataset.gbAiMode)));
+  quick.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-gb-ai-prompt]');
+    if (button) send(button.dataset.gbAiPrompt);
+  });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    send(input.value);
+  });
+
+  setMode('configurator');
 })();

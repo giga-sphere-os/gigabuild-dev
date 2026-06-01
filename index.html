@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#0a0e17" />
+<meta name="theme-color" content="#050914" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260526-redesign" />
+<link rel="stylesheet" href="styles.css?v=20260601-security" />
 </head>
 <body>
 
@@ -36,6 +36,17 @@
 
 <div class="progress-wrap" id="progressWrap" hidden>
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<div class="resume-banner" id="resumeBanner" hidden>
+  <div>
+    <strong>Saved build found</strong>
+    <span id="resumeMeta">Resume where you left off.</span>
+  </div>
+  <div class="resume-actions">
+    <button type="button" class="btn btn-primary btn-sm" id="resumeDraft">Resume</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="discardDraft">Start fresh</button>
+  </div>
 </div>
 
 <main class="app">
@@ -67,7 +78,20 @@
       <a href="https://gigasphere.io/#modules">Modules</a>
       <a href="https://gigasphere.io/#pricing">Pricing</a>
       <a href="https://gigasphere.io/#worm">WORM</a>
+      <a href="https://gigabooks.app/app?return_to=https%3A%2F%2Fwww.gigabuild.dev%2F" data-identity-return-current>Giga-Sphere ID</a>
     </nav>
+    <label class="lang-control" for="lang-switch">
+      <span class="sr-only">Language</span>
+      <select id="lang-switch" class="lang-select" aria-label="Language">
+        <option value="en">English</option>
+        <option value="es-MX">Español</option>
+        <option value="zh-CN">中文</option>
+        <option value="tl">Tagalog</option>
+        <option value="vi">Tiếng Việt</option>
+        <option value="ar">العربية</option>
+        <option value="hi">हिन्दी</option>
+      </select>
+    </label>
     <button class="landing-nav-cta" type="button" data-nav="next">Start Build</button>
   </header>
 
@@ -434,6 +458,7 @@
     <div class="checkout-panel">
       <label class="checkout-label" for="customDomain">Workspace domain</label>
       <input id="customDomain" class="checkout-input" type="text" inputmode="url" placeholder="fleet.yourcompany.com" autocomplete="url" />
+      <p class="field-hint">After checkout, Giga-Sphere verifies domain ownership before attaching the domain to a workspace.</p>
       <label class="checkout-check">
         <input id="termsAccepted" type="checkbox" />
         <span>Subscription fees include a 30-day money-back guarantee. Domain registration and custom build work are non-refundable once started.</span>
@@ -459,6 +484,42 @@
 
 </main>
 
-<script src="app.js"></script>
+<section class="gb-ai-dock" aria-label="GigaBuild AI assistants">
+  <div class="gb-ai-panel" id="gb-ai-panel" hidden>
+    <div class="gb-ai-head">
+      <div>
+        <p class="gb-ai-kicker">Assistant layer</p>
+        <h2 id="gb-ai-title">Gigasphere AI</h2>
+      </div>
+      <button type="button" class="gb-ai-close" data-gb-ai-close aria-label="Close assistant">×</button>
+    </div>
+    <div class="gb-ai-tabs" role="tablist" aria-label="Assistant mode">
+      <button type="button" class="gb-ai-tab active" data-gb-ai-mode="configurator">Gigasphere AI</button>
+      <button type="button" class="gb-ai-tab" data-gb-ai-mode="support">Giganaut AI</button>
+    </div>
+    <div class="gb-ai-log" id="gb-ai-log" role="log" aria-live="polite"></div>
+    <div class="gb-ai-quick" id="gb-ai-quick"></div>
+    <form class="gb-ai-form" id="gb-ai-form">
+      <input id="gb-ai-input" type="text" autocomplete="off" placeholder="Ask Gigasphere AI to configure services..." />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+  <button type="button" class="gb-ai-launcher" data-gb-ai-open="configurator">
+    <span class="gb-ai-orb" aria-hidden="true"></span>
+    <span><strong>Gigasphere AI</strong><small>AI configurator</small></span>
+  </button>
+  <button type="button" class="gb-ai-launcher secondary" data-gb-ai-open="support">
+    <span class="gb-ai-orb support" aria-hidden="true"></span>
+    <span><strong>Giganaut AI</strong><small>Customer service</small></span>
+  </button>
+</section>
+
+<footer class="legal-footer" aria-label="Legal and account links">
+  <a href="/privacy.html">Privacy Policy</a>
+  <a href="/delete-account.html">Delete account/data</a>
+  <a href="mailto:privacy@gigasphere.io?subject=GigaBuild%20privacy%20request">Privacy request</a>
+</footer>
+
+<script src="app.js?v=20260601-security"></script>
 </body>
 </html>

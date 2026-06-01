@@ -3,7 +3,7 @@
 Trucker-native onboarding flow for the Giga-Sphere platform. Prospects walk through 9 quick screens (name → freight → payment → costs → fleet → modules → review → activation workspace) and end with a configured stack, a downloadable activation packet, an email-ready build summary, and a direct walkthrough booking path. Deploys to **gigabuild.dev** on Vercel.
 
 - **Stack:** static HTML/CSS/JS — no framework, no build step
-- **State:** single in-memory `state` object on `window.gigaBuild` plus a local saved activation packet for the completed configuration
+- **State:** single `state` object on `window.gigaBuild`, continuous local draft autosave for resume, plus a saved activation packet for completed configurations
 - **Brand:** Giga-Sphere command-center shell with dark grid field, gold accent, and PWA install support
 - **Theme:** dark, mobile-first, animated progress bar, one question per screen
 - **Inspiration:** Load Ledger's onboarding UX — built for phones, in the truck cab
@@ -27,7 +27,11 @@ Or just double-click `index.html` — it works straight from the file system.
 |--------------|------|
 | `index.html` | Markup for all 9 steps + progress header + dashboard preview |
 | `styles.css` | Brand tokens, layout, step transitions, dashboard styles |
-| `app.js`     | State, navigation, conditional logic, module pricing, all rendering |
+| `app.js`     | State, navigation, autosave/resume, conditional logic, module pricing, all rendering |
+| `api/create-checkout.js` | Server-side Stripe Checkout creation, order storage, domain uniqueness checks |
+| `api/stripe-webhook.js` | Signed Stripe webhook handling, payment validation, DNS-gated domain provisioning |
+| `privacy.html` | Privacy policy path for app-store and web readiness |
+| `delete-account.html` | Account/data deletion request path for app-store readiness |
 
 ---
 
@@ -144,7 +148,7 @@ window.gigaBuild = {
 };
 ```
 
-State persists in memory while the user moves through the configurator. On activation, the generated packet is also saved to `localStorage` under `gigaBuildConfiguration` so the completed build can survive a refresh in the installed PWA/browser session. No backend credentials or secrets are required.
+State persists locally while the user moves through the configurator. Draft progress is saved under `gigaBuildDraft` after meaningful changes so a 30-45 minute setup can survive refreshes, app switches, and accidental tab closes. On activation, the generated packet is also saved to `localStorage` under `gigaBuildConfiguration`.
 
 ---
 
@@ -185,9 +189,33 @@ To add a module: append an entry to `MODULES`. Filtering and pricing pick it up 
 
 Production deploy target: **https://www.gigabuild.dev**
 
-Static Vercel deployment. No build command is required.
+Static Vercel deployment plus Vercel API routes. No build command is required.
 
-Per repo canon: no Apps Script, no Drive MCP for >14 KB. This site doesn't write to any Giga-Sphere data plane — it's a pure marketing/configurator surface. No service account, no secrets, no backend.
+Per repo canon: no Apps Script, no Drive MCP for >14 KB. Checkout and provisioning use server-side environment variables only; never expose Stripe, Supabase service-role, or Vercel tokens in frontend JavaScript.
+
+### Supabase Migration
+
+Before deploying the checkout/webhook hardening, apply the GigaBuild security migration:
+
+For a brand-new GigaBuild Supabase project, run `supabase/bootstrap-production.sql` first. It creates the production tables, indexes, and row-level security policies from scratch.
+
+1. Run `supabase/preflight-gigabuild-security-hardening.sql` in Supabase SQL Editor.
+2. Confirm it returns zero rows. If it returns duplicate domains, resolve those order records first.
+3. Run `supabase/migrations/20260601080000_gigabuild_security_hardening.sql`.
+
+CLI option:
+
+```bash
+SUPABASE_DB_URL='postgresql://...' npm run migrate:prod
+```
+
+The CLI migration runner checks for duplicate domains first and stops before applying the migration if any exist.
+
+The migration adds `stripe_event_id`, `domain_verification_token`, a unique domain index, and a unique non-null Stripe event index for webhook replay protection.
+
+## Mobile Commerce Posture
+
+Current posture is web/PWA checkout through Stripe. Do not ship this payment flow inside native iOS or Android wrappers until the commerce model is decided: web-only purchase, native in-app purchase, or a documented policy-qualified exception.
 
 ---
 
