@@ -1,0 +1,1 @@
+{"version":"2","authority":"DR-033","token_files":[],"exceptions":[{"exact":"/absolute/path/src/app.css","reason":"Absolute path attempt","category":"test"}]}

@@ -1,7 +1,3 @@
-
-    :root { --bg: var(--gs-color-black); --accent: var(--gs-color-gold); }
-    body { background: var(--bg); color: #ffffff; }
-    .btn { background: var(--accent); color: var(--gs-color-black); }
-    .error { color: #c53030; }
-    .success { color: #22c55e; }
-  
+:root { --bg: var(--gs-color-black); }
+body { background: var(--bg); }
+.error { color: #c53030; }

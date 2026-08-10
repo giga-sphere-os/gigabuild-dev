@@ -1,0 +1,1 @@
+const style = { background: '#050505' };

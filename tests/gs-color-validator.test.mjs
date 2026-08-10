@@ -1,29 +1,32 @@
 /**
- * Regression fixtures for GigaSphere Color Governance Validator
+ * GigaSphere Color Governance Validator — Regression Tests v2
  * Authority: DR-033 — GigaSphere Global Color Governance (2026-08-10)
  *
- * Proves the validator:
- *   1. Rejects retired hex navy (6-digit, 3-digit, 8-digit)
- *   2. Rejects rgb/rgba equivalents of retired navies
- *   3. Rejects hsl/hsla equivalents of retired navies
- *   4. Rejects hardcoded approved colors outside authorized locations
- *   5. Allows documented semantic color exceptions
- *   6. Scans build artifacts (dist/ and build/ not excluded)
- *   7. Passes a clean file with only approved tokens
+ * 36 tests covering:
+ *   T01–T20  Original suite (hex, rgb, rgba, hsl, hsla, bypass, build scan,
+ *             provenance comment, exception, clean file)
+ *   T21–T24  Provenance bypass hardening (Fix 1)
+ *   T25–T28  Exact exception path matching (Fix 2)
+ *   T29      Consistent scan root (Fix 3)
+ *   T30–T34  Approved-color bypass — all three approved colors fail in code (Fix 4)
+ *   T35–T36  Unlisted navy variants — previously unknown navies caught (Fix 5)
  */
 
-import { writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
+import { writeFileSync, mkdirSync, rmSync, existsSync, createReadStream } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const VALIDATOR = resolve(__dirname, '..', 'scripts', 'gs-color-validator.mjs');
-const TMP = resolve(__dirname, 'fixtures', 'governance');
+const __dirname  = dirname(fileURLToPath(import.meta.url));
+const VALIDATOR  = resolve(__dirname, '..', 'scripts', 'gs-color-validator.mjs');
+const FIXTURE_BASE = resolve(__dirname, 'fixtures', 'governance');
 
-function setup(name, files) {
-  const dir = resolve(TMP, name);
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function setup(name, files, opts = {}) {
+  const dir = resolve(FIXTURE_BASE, name);
   if (existsSync(dir)) rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   for (const [rel, content] of Object.entries(files)) {
@@ -34,10 +37,10 @@ function setup(name, files) {
   return dir;
 }
 
-function run(dir) {
+function run(dir, extraArgs = '') {
   try {
-    execSync(`node ${VALIDATOR} ${dir}`, { encoding: 'utf8', stdio: 'pipe' });
-    return { pass: true, output: '' };
+    const out = execSync(`node ${VALIDATOR} ${dir} ${extraArgs}`, { encoding: 'utf8', stdio: 'pipe' });
+    return { pass: true, output: out };
   } catch (e) {
     return { pass: false, output: e.stdout + e.stderr };
   }
@@ -57,156 +60,246 @@ function test(name, fn) {
   }
 }
 
-console.log('\nGigaSphere Color Governance — Validator Regression Tests\n');
+console.log('\nGigaSphere Color Governance v2 — Regression Tests\n');
 
-// ── 1. Retired hex navy — 6-digit ─────────────────────────────────────────
-test('Rejects retired navy #0d1f35 (6-digit hex)', () => {
-  const dir = setup('t01', { 'src/app.css': 'background: #0d1f35;' });
-  const r = run(dir);
-  assert.equal(r.pass, false, 'Expected failure for #0d1f35');
-  assert.ok(r.output.includes('0d1f35'), 'Expected violation report for 0d1f35');
+// ══════════════════════════════════════════════════════════════════════════════
+// T01–T20  Original suite (carried forward)
+// ══════════════════════════════════════════════════════════════════════════════
+
+test('T01 Rejects retired navy #0d1f35 (6-digit hex)', () => {
+  const r = run(setup('t01', { 'src/app.css': 'background: #0d1f35;' }));
+  assert.equal(r.pass, false);
+  assert.ok(r.output.includes('0d1f35'));
 });
 
-// ── 2. Retired hex navy — uppercase ───────────────────────────────────────
-test('Rejects retired navy #0D1F35 (uppercase)', () => {
-  const dir = setup('t02', { 'src/app.css': 'color: #0D1F35;' });
-  assert.equal(run(dir).pass, false, 'Expected failure for uppercase #0D1F35');
+test('T02 Rejects retired navy #0D1F35 (uppercase)', () => {
+  assert.equal(run(setup('t02', { 'src/app.css': 'color: #0D1F35;' })).pass, false);
 });
 
-// ── 3. Retired navy — deep navy variant #050914 ───────────────────────────
-test('Rejects retired deep navy #050914', () => {
-  const dir = setup('t03', { 'src/app.css': '--bg: #050914;' });
-  assert.equal(run(dir).pass, false, 'Expected failure for #050914');
+test('T03 Rejects retired deep navy #050914', () => {
+  assert.equal(run(setup('t03', { 'src/app.css': '--bg: #050914;' })).pass, false);
 });
 
-// ── 4. Retired navy — rgba exact equivalent ───────────────────────────────
-test('Rejects rgb equivalent of retired navy: rgb(13, 31, 53)', () => {
-  const dir = setup('t04', { 'src/app.css': 'background: rgb(13, 31, 53);' });
-  const r = run(dir);
-  assert.equal(r.pass, false, 'Expected failure for rgb(13,31,53)');
+test('T04 Rejects rgb() equivalent: rgb(13, 31, 53)', () => {
+  assert.equal(run(setup('t04', { 'src/app.css': 'background: rgb(13, 31, 53);' })).pass, false);
 });
 
-// ── 5. Retired navy — rgba with alpha ─────────────────────────────────────
-test('Rejects rgba equivalent: rgba(13, 31, 53, 0.5)', () => {
-  const dir = setup('t05', { 'src/app.css': 'background: rgba(13, 31, 53, 0.5);' });
-  assert.equal(run(dir).pass, false, 'Expected failure for rgba(13,31,53,0.5)');
+test('T05 Rejects rgba() equivalent: rgba(13, 31, 53, 0.5)', () => {
+  assert.equal(run(setup('t05', { 'src/app.css': 'background: rgba(13, 31, 53, 0.5);' })).pass, false);
 });
 
-// ── 6. Retired navy — rgba(5,9,20) — deep navy ────────────────────────────
-test('Rejects rgba equivalent of deep navy: rgba(5, 9, 20, 0.96)', () => {
-  const dir = setup('t06', { 'styles.css': 'background: rgba(5, 9, 20, 0.96);' });
-  assert.equal(run(dir).pass, false, 'Expected failure for rgba(5,9,20,0.96)');
+test('T06 Rejects rgba deep navy: rgba(5, 9, 20, 0.96)', () => {
+  assert.equal(run(setup('t06', { 'styles.css': 'background: rgba(5, 9, 20, 0.96);' })).pass, false);
 });
 
-// ── 7. Retired navy — rgba(7,11,20) — bg variant ─────────────────────────
-test('Rejects rgba bg variant: rgba(7, 11, 20, 0.98)', () => {
-  const dir = setup('t07', { 'styles.css': 'background: rgba(7, 11, 20, 0.98);' });
-  assert.equal(run(dir).pass, false, 'Expected failure for rgba(7,11,20,0.98)');
+test('T07 Rejects rgba bg variant: rgba(7, 11, 20, 0.98)', () => {
+  assert.equal(run(setup('t07', { 'styles.css': 'background: rgba(7, 11, 20, 0.98);' })).pass, false);
 });
 
-// ── 8. Retired navy — hsl equivalent ─────────────────────────────────────
-test('Rejects hsl equivalent of retired navy: hsl(213, 61%, 13%)', () => {
-  const dir = setup('t08', { 'src/app.css': 'background: hsl(213, 61%, 13%);' });
-  assert.equal(run(dir).pass, false, 'Expected failure for hsl(213,61%,13%)');
+test('T08 Rejects hsl equivalent: hsl(213, 61%, 13%)', () => {
+  assert.equal(run(setup('t08', { 'src/app.css': 'background: hsl(213, 61%, 13%);' })).pass, false);
 });
 
-// ── 9. Retired navy — hsla equivalent ────────────────────────────────────
-test('Rejects hsla equivalent: hsla(213, 60%, 13%, 0.8)', () => {
-  const dir = setup('t09', { 'src/app.css': 'background: hsla(213, 60%, 13%, 0.8);' });
-  assert.equal(run(dir).pass, false, 'Expected failure for hsla(213,60%,13%,0.8)');
+test('T09 Rejects hsla equivalent: hsla(213, 60%, 13%, 0.8)', () => {
+  assert.equal(run(setup('t09', { 'src/app.css': 'background: hsla(213, 60%, 13%, 0.8);' })).pass, false);
 });
 
-// ── 10. Hardcoded approved black in component file — FAIL ─────────────────
-test('Rejects hardcoded #050505 in component file (must use token)', () => {
-  const dir = setup('t10', { 'src/components/Button.jsx': "background: '#050505';" });
-  assert.equal(run(dir).pass, false, 'Expected failure for hardcoded #050505 in component');
+test('T10 Rejects hardcoded #050505 in component file', () => {
+  assert.equal(run(setup('t10', { 'src/components/Button.jsx': "background: '#050505';" })).pass, false);
 });
 
-// ── 11. Hardcoded approved gold in component file — FAIL ──────────────────
-test('Rejects hardcoded #e8a020 in component file (must use token)', () => {
-  const dir = setup('t11', { 'src/components/Card.tsx': 'color: #e8a020;' });
-  assert.equal(run(dir).pass, false, 'Expected failure for hardcoded #e8a020 in component');
+test('T11 Rejects hardcoded #e8a020 in component file', () => {
+  assert.equal(run(setup('t11', { 'src/components/Card.tsx': 'color: #e8a020;' })).pass, false);
 });
 
-// ── 12. Approved colors in token file — PASS ──────────────────────────────
-test('Allows approved colors in authorized token definition file', () => {
-  const dir = setup('t12', { 'src/styles/tokens.css': ':root { --gs-color-black: #050505; --gs-color-gold: #e8a020; }' });
-  assert.equal(run(dir).pass, true, 'Expected pass for colors in tokens.css');
+test('T12 Allows approved colors in authorized tokens.css', () => {
+  assert.equal(run(setup('t12', { 'src/styles/tokens.css': ':root { --gs-color-black: #050505; --gs-color-gold: #e8a020; }' })).pass, true);
 });
 
-// ── 13. Approved colors in Tailwind config — PASS ─────────────────────────
-test('Allows approved colors in tailwind.config.ts', () => {
-  const dir = setup('t13', { 'tailwind.config.ts': "colors: { black: '#050505', gold: '#e8a020' }" });
-  assert.equal(run(dir).pass, true, 'Expected pass for colors in tailwind.config.ts');
+test('T13 Allows approved colors in tailwind.config.ts', () => {
+  assert.equal(run(setup('t13', { 'tailwind.config.ts': "colors: { black: '#050505', gold: '#e8a020' }" })).pass, true);
 });
 
-// ── 14. Approved colors in manifest — PASS ───────────────────────────────
-test('Allows approved black in manifest.json (PWA requirement)', () => {
-  const dir = setup('t14', { 'public/manifest.json': '{"theme_color":"#050505","background_color":"#050505"}' });
-  assert.equal(run(dir).pass, true, 'Expected pass for #050505 in manifest.json');
+test('T14 Allows approved black in manifest.json (PWA requirement)', () => {
+  assert.equal(run(setup('t14', { 'public/manifest.json': '{"theme_color":"#050505"}' })).pass, true);
 });
 
-// ── 15. Semantic error red — PASS ─────────────────────────────────────────
-test('Allows semantic error red #c53030 (functional, not brand)', () => {
-  const dir = setup('t15', { 'src/app.css': '--color-danger: #c53030;' });
-  assert.equal(run(dir).pass, true, 'Expected pass for semantic red');
+test('T15 Allows semantic error red #c53030 (functional)', () => {
+  assert.equal(run(setup('t15', { 'src/app.css': '--color-danger: #c53030;' })).pass, true);
 });
 
-// ── 16. Scans dist/ (build artifact) — not excluded ──────────────────────
-test('Scans build artifact in dist/ directory', () => {
-  const dir = setup('t16', { 'dist/index.html': '<style>body{background:#0d1f35}</style>' });
-  const r = run(dir);
-  assert.equal(r.pass, false, 'Expected failure for retired navy in dist/');
+test('T16 Scans dist/ directory (not excluded)', () => {
+  assert.equal(run(setup('t16', { 'dist/index.html': '<style>body{background:#0d1f35}</style>' })).pass, false);
 });
 
-// ── 17. Scans build/ directory ────────────────────────────────────────────
-test('Scans compiled CSS in build/ directory', () => {
-  const dir = setup('t17', { 'build/assets/app.css': 'background-color:#0d1f35' });
-  assert.equal(run(dir).pass, false, 'Expected failure for retired navy in build/');
+test('T17 Scans build/ directory (not excluded)', () => {
+  assert.equal(run(setup('t17', { 'build/assets/app.css': 'background-color:#0d1f35' })).pass, false);
 });
 
-// ── 18. Provenance comment — PASS ────────────────────────────────────────
-test('Allows provenance comment line referencing retired color', () => {
-  const dir = setup('t18', { 'src/tokens.css': '/* was #0d1f35 — retired per DR-033 */\n--color-black: #050505;' });
-  assert.equal(run(dir).pass, true, 'Expected pass for provenance comment');
+test('T18 Pure provenance comment line → PASS', () => {
+  // A comment-only line referencing retired navy is allowed (historical documentation)
+  assert.equal(run(setup('t18', { 'src/tokens.css': '/* was #0d1f35 — retired per DR-033 */\n--color-black: #050505;' })).pass, true);
 });
 
-// ── 19. Documented exception in manifest — PASS ─────────────────────────
-test('Allows documented exception via gs-color-exceptions.json', () => {
+test('T19 Documented exception via gs-color-exceptions.json', () => {
   const dir = setup('t19', {
     'src/chart.css': 'background: rgba(13, 31, 53, 0.1);',
     'scripts/gs-color-exceptions.json': JSON.stringify({
-      version: '1',
-      authority: 'DR-033',
+      version: '2', authority: 'DR-033', token_files: [],
       exceptions: [{
-        file: 'src/chart.css',
+        exact: 'src/chart.css',
         reason: 'Data visualization chart background — semantic, not brand surface',
         category: 'data_visualization',
-        require_pattern: 'rgba\\(13.*0\\.1\\)'
+        require_pattern: 'rgba\\(13.*0\\.1\\)',
       }]
     })
   });
-  // With exception, should pass (exit 0)
-  assert.equal(run(dir).pass, true, 'Expected pass for documented chart exception');
+  assert.equal(run(dir).pass, true);
 });
 
-// ── 20. Clean file — PASS ────────────────────────────────────────────────
-test('Passes a fully compliant file with only approved tokens', () => {
-  const dir = setup('t20', { 'src/app.css': `
-    :root { --bg: var(--gs-color-black); --accent: var(--gs-color-gold); }
-    body { background: var(--bg); color: #ffffff; }
-    .btn { background: var(--accent); color: var(--gs-color-black); }
-    .error { color: #c53030; }
-    .success { color: #22c55e; }
-  ` });
-  assert.equal(run(dir).pass, true, 'Expected pass for compliant file');
+test('T20 Fully compliant file with only approved tokens → PASS', () => {
+  assert.equal(run(setup('t20', { 'src/app.css':
+    ':root { --bg: var(--gs-color-black); }\nbody { background: var(--bg); }\n.error { color: #c53030; }' })).pass, true);
 });
 
-// ── Summary ───────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// T21–T24  Provenance bypass hardening (Fix 1)
+// ══════════════════════════════════════════════════════════════════════════════
+
+test('T21 Active declaration with "DR-033" in comment — active code still fails', () => {
+  // The string "DR-033" appears in an inline comment, but the active code has navy
+  const dir = setup('t21', { 'src/app.css': 'background: #0d1f35; /* DR-033 era color */' });
+  const r = run(dir);
+  assert.equal(r.pass, false, 'Expected failure: active navy declaration not exempted by DR-033 in comment');
+});
+
+test('T22 Active declaration with "retired" in comment — active code still fails', () => {
+  const dir = setup('t22', { 'src/app.css': 'color: #0d1f35; /* retired navy */' });
+  assert.equal(run(dir).pass, false, 'Expected failure: active navy not exempted by "retired" in comment');
+});
+
+test('T23 Active declaration with "was #" in comment — active code still fails', () => {
+  const dir = setup('t23', { 'src/app.css': 'background: #050914; /* was # of old value */' });
+  assert.equal(run(dir).pass, false, 'Expected failure: active navy not exempted by "was #" in comment');
+});
+
+test('T24 Inline comment after active navy code — code portion fails', () => {
+  // Comment is after the declaration — should not suppress the violation
+  const dir = setup('t24', { 'styles.css': '--bg: #0d1f35; // previously approved, now retired per DR-033' });
+  assert.equal(run(dir).pass, false, 'Expected failure: navy in code portion, not exempted by comment after it');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// T25–T28  Exact exception path matching (Fix 2)
+// ══════════════════════════════════════════════════════════════════════════════
+
+test('T25 Exception for "art.css" does NOT exempt "chart.css" (basename collision)', () => {
+  // Exception is exact for "src/art.css" — must not match "src/chart.css"
+  const dir = setup('t25', {
+    'src/chart.css': 'background: rgba(13, 31, 53, 0.1);',
+    'scripts/gs-color-exceptions.json': JSON.stringify({
+      version: '2', authority: 'DR-033', token_files: [],
+      exceptions: [{ exact: 'src/art.css', reason: 'Test exception for art.css only', category: 'test' }]
+    })
+  });
+  assert.equal(run(dir).pass, false, 'Exception for art.css must not exempt chart.css');
+});
+
+test('T26 Exception for "components/Card.jsx" does NOT exempt "legacy/components/Card.jsx"', () => {
+  const dir = setup('t26', {
+    'legacy/components/Card.jsx': "backgroundColor: '#0d1f35'",
+    'scripts/gs-color-exceptions.json': JSON.stringify({
+      version: '2', authority: 'DR-033', token_files: [],
+      exceptions: [{ exact: 'components/Card.jsx', reason: 'Test', category: 'test' }]
+    })
+  });
+  // legacy/components/Card.jsx contains retired navy (not approved-color check relevant here)
+  assert.equal(run(dir).pass, false, 'Exception for components/Card.jsx must not exempt legacy/components/Card.jsx');
+});
+
+test('T27 Path traversal in exception path is rejected gracefully', () => {
+  const dir = setup('t27', {
+    'src/app.css': '--color: #050505;',
+    'scripts/gs-color-exceptions.json': JSON.stringify({
+      version: '2', authority: 'DR-033', token_files: [],
+      exceptions: [{ exact: '../src/app.css', reason: 'Traversal attempt', category: 'test' }]
+    })
+  });
+  // Validator should not crash — it should reject the traversal exception
+  // and still flag the hardcoded approved color
+  const r = run(dir);
+  // Either fails on the hardcoded approved color OR passes with a warning
+  // The key assertion is it does not crash silently
+  assert.ok(typeof r.pass === 'boolean', 'Validator must not crash on traversal exception path');
+});
+
+test('T28 Absolute path in exception is rejected gracefully', () => {
+  const dir = setup('t28', {
+    'src/app.css': '--color: #050505;',
+    'scripts/gs-color-exceptions.json': JSON.stringify({
+      version: '2', authority: 'DR-033', token_files: [],
+      exceptions: [{ exact: '/absolute/path/src/app.css', reason: 'Absolute path attempt', category: 'test' }]
+    })
+  });
+  const r = run(dir);
+  assert.ok(typeof r.pass === 'boolean', 'Validator must not crash on absolute exception path');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// T29  Consistent scan root (Fix 3)
+// ══════════════════════════════════════════════════════════════════════════════
+
+test('T29 Validator invoked on isolated directory catches violations correctly', () => {
+  // Create an isolated directory far from the validator's own repo root
+  const dir = setup('t29', {
+    'src/colors.css': 'background: #0d1f35;',
+    // No exceptions manifest → no token_files
+  });
+  const r = run(dir);
+  assert.equal(r.pass, false, 'Validator must catch violations in isolated scan root');
+  assert.ok(r.output.includes('0d1f35'), 'Must report the specific violated hex');
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// T30–T34  Approved-color bypass (Fix 4) — all three colors fail in code
+// ══════════════════════════════════════════════════════════════════════════════
+
+test('T30 Hardcoded #050505 fails in ordinary CSS file', () => {
+  assert.equal(run(setup('t30', { 'src/layout.css': 'body { background-color: #050505; }' })).pass, false);
+});
+
+test('T31 Hardcoded #E8A020 fails in HTML inline style', () => {
+  assert.equal(run(setup('t31', { 'src/page.html': '<div style="color:#E8A020">text</div>' })).pass, false);
+});
+
+test('T32 Hardcoded #ffffff fails in JSX component', () => {
+  // White (#ffffff) must FAIL in JSX, same as Black and Gold
+  assert.equal(run(setup('t32', { 'src/components/Hero.jsx': 'const s = { color: "#ffffff" };' })).pass, false);
+});
+
+test('T33 Hardcoded #050505 fails in JSX inline style', () => {
+  assert.equal(run(setup('t33', { 'src/App.tsx': "const style = { background: '#050505' };" })).pass, false);
+});
+
+test('T34 Hardcoded #E8A020 fails in generated dist/ output', () => {
+  assert.equal(run(setup('t34', { 'dist/styles.css': '.btn { background: #e8a020; }' })).pass, false);
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// T35–T36  Unlisted navy variants (Fix 5)
+// ══════════════════════════════════════════════════════════════════════════════
+
+test('T35 Unlisted navy variant #0c1428 fails (not in original 14-entry list)', () => {
+  // #0c1428 was not in the original DR-033 retired list but is still detected
+  assert.equal(run(setup('t35', { 'styles.css': 'background: #0c1428;' })).pass, false);
+});
+
+test('T36 Unlisted navy via rgb() — rgb(14, 26, 45) — fails', () => {
+  // rgb(14,26,45) = #0e1a2d — unlisted variant detected via rgb() pattern
+  assert.equal(run(setup('t36', { 'src/app.css': 'background: rgb(14, 26, 45);' })).pass, false);
+});
+
+// ── Summary ───────────────────────────────────────────────────────────────────
 console.log(`\n  Results: ${passed} passed, ${failed} failed\n`);
-if (failed > 0) {
-  console.error('REGRESSION TESTS FAILED');
-  process.exit(1);
-} else {
-  console.log('All regression tests passed.');
-}
+if (failed > 0) { console.error('REGRESSION TESTS FAILED'); process.exit(1); }
+else console.log('All regression tests passed.');

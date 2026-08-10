@@ -1,13 +1,13 @@
 name: GigaSphere Color Governance
 
 # DR-033 — GigaSphere Global Color Governance (2026-08-10)
-# Validator: scripts/gs-color-validator.mjs
-# Regression tests: tests/fixtures/governance/
+# Validator: scripts/gs-color-validator.mjs (v2)
+# Regression tests: tests/gs-color-validator.test.mjs
 #
 # Authority: gigasphere-master-data-room/contracts/GS_COLOR_CONTRACT_v1.json
 # Failures: retired navy (hex/rgb/rgba/hsl/hsla), hardcoded approved colors outside tokens
-# Scans: source, SVG, manifests, dist/, build/, generated artifacts
-# Excludes: node_modules, .git, dependency caches only
+# Scans: source, SVG, HTML, manifests, dist/, build/, generated artifacts
+# Excludes: node_modules, .git, dependency caches, .next only
 
 on:
   push:
@@ -32,5 +32,5 @@ jobs:
       - name: Run color governance regression tests
         run: node tests/gs-color-validator.test.mjs
 
-      - name: Run color governance validator
+      - name: Run color governance full-repo scan
         run: node scripts/gs-color-validator.mjs .
