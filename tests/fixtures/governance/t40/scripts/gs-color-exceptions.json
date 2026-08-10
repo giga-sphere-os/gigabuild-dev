@@ -1,0 +1,1 @@
+{"version":"2","authority":"DR-033","token_files":[],"exceptions":[{"exact":"assets/favicon.svg","reason":"Standalone brand SVG — approved literal technically required","category":"standalone_svg_brand_asset"}]}

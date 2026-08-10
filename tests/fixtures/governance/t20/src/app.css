@@ -1,0 +1,3 @@
+:root { --bg: var(--gs-color-black); }
+body { background: var(--bg); }
+.error { color: #c53030; }

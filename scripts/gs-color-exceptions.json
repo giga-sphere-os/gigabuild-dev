@@ -1,0 +1,22 @@
+{
+  "version": "2",
+  "authority": "DR-033 — GigaSphere Global Color Governance (2026-08-10)",
+  "description": "Contextual exceptions for gigabuild-dev. Single-file static app — styles.css is both token definition AND primary stylesheet. No build step separates token definitions from component styles.",
+
+  "token_files": [
+    "styles.css"
+  ],
+
+  "exceptions": [
+    {
+      "exact": "assets/favicon.svg",
+      "reason": "Standalone brand favicon SVG served as external image. Cannot reference CSS custom properties in an external SVG context. Brand colors (#050505 Black, #e8a020 Gold, #ffffff White) are technically required as literal hex in SVG attributes. DR-033 authority: standalone-SVG technically-necessary exception.",
+      "category": "standalone_svg_brand_asset"
+    },
+    {
+      "glob": "**/*.html",
+      "reason": "Static HTML files served directly without a build pipeline (index.html, privacy.html, delete-account.html). Theme-color meta and inline brand color attributes are technically required literal hex values. DR-033 authority: static-HTML PWA-meta and inline-attribute technically-necessary exception.",
+      "category": "static_html_technically_required"
+    }
+  ]
+}
