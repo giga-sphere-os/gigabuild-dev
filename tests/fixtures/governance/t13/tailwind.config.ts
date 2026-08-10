@@ -1,0 +1,1 @@
+colors: { black: '#050505', gold: '#e8a020' }

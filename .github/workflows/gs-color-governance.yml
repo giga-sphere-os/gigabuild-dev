@@ -1,11 +1,13 @@
 name: GigaSphere Color Governance
 
 # DR-033 — GigaSphere Global Color Governance (2026-08-10)
-# Validates that retired navy palette is not present and approved Black/Gold/White
-# contract is in effect. Fails on brand-surface violations; allows documented exceptions.
+# Validator: scripts/gs-color-validator.mjs
+# Regression tests: tests/fixtures/governance/
 #
 # Authority: gigasphere-master-data-room/contracts/GS_COLOR_CONTRACT_v1.json
-# Do not modify the retired-color list without a new dated Decision Record.
+# Failures: retired navy (hex/rgb/rgba/hsl/hsla), hardcoded approved colors outside tokens
+# Scans: source, SVG, manifests, dist/, build/, generated artifacts
+# Excludes: node_modules, .git, dependency caches only
 
 on:
   push:
@@ -22,173 +24,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run GigaSphere color governance validator
-        shell: bash
-        run: |
-          set -euo pipefail
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-          # ── Approved brand colors ─────────────────────────────────────────────
-          APPROVED_BLACK="#050505"
-          APPROVED_GOLD="#e8a020"
-          APPROVED_WHITE="#ffffff"
+      - name: Run color governance regression tests
+        run: node tests/gs-color-validator.test.mjs
 
-          # ── Retired navy hex values (case-insensitive) ────────────────────────
-          # Source: gigasphere-master-data-room/contracts/GS_COLOR_CONTRACT_v1.json
-          RETIRED_NAVIES=(
-            "0d1f35"   # Canonical GigaSphere Navy
-            "162d4a"   # Navy elevated surface
-            "050914"   # Deep navy (gigabuild / gigasphere.io)
-            "0b1020"   # Lifted navy surface
-            "0d1324"   # Navy card surface
-            "070b14"   # Navy background variant
-            "0f1117"   # Dark navy (giga-books app)
-            "07111f"   # Dark navy (your-co-driver)
-            "0d1a2f"   # Navy surface (your-co-driver)
-          )
-
-          # ── Source file patterns to scan ──────────────────────────────────────
-          SOURCE_PATTERNS=(
-            "*.css"
-            "*.scss"
-            "*.less"
-            "*.html"
-            "*.htm"
-            "*.jsx"
-            "*.tsx"
-            "*.js"
-            "*.ts"
-            "*.svg"
-            "*.json"
-            "*.md"
-          )
-
-          # ── Allowlist: files/patterns exempt from enforcement ─────────────────
-          # Add only documented, evidence-backed exceptions here.
-          ALLOWLIST_PATTERNS=(
-            "*/node_modules/*"
-            "*/.git/*"
-            "*/dist/*"
-            "*/build/*"
-            "*/*.min.css"
-            "*/*.min.js"
-            # Governance documents that reference retired colors by name for provenance
-            "*/DR-033_COLOR_GOVERNANCE.md"
-            "*/GS_COLOR_CONTRACT_v1.json"
-            "*/CHANGELOG*"
-            "*/HISTORY*"
-            # Test fixtures that intentionally test retired colors
-            "*/__fixtures__/*"
-            "*/test/fixtures/*"
-          )
-
-          # ── Build find command exclusions ─────────────────────────────────────
-          FIND_EXCLUDES=()
-          for pattern in "${ALLOWLIST_PATTERNS[@]}"; do
-            FIND_EXCLUDES+=(-not -path "$pattern")
-          done
-
-          # ── Build file name patterns for find ─────────────────────────────────
-          FIND_NAMES=()
-          for i in "${!SOURCE_PATTERNS[@]}"; do
-            if [ $i -eq 0 ]; then
-              FIND_NAMES+=(-name "${SOURCE_PATTERNS[$i]}")
-            else
-              FIND_NAMES+=(-o -name "${SOURCE_PATTERNS[$i]}")
-            fi
-          done
-
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "  GigaSphere Color Governance Validator"
-          echo "  Authority: DR-033 (2026-08-10)"
-          echo "  Approved:  Black ${APPROVED_BLACK} · Gold ${APPROVED_GOLD} · White ${APPROVED_WHITE}"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo ""
-
-          VIOLATIONS=0
-          VIOLATION_REPORT=""
-
-          # ── Scan for retired navy values ───────────────────────────────────────
-          for HEX in "${RETIRED_NAVIES[@]}"; do
-            echo "Scanning for retired navy: #${HEX}..."
-
-            # Find all source files (respecting allowlist)
-            MATCHES=$(find . \( "${FIND_NAMES[@]}" \) \
-              "${FIND_EXCLUDES[@]}" \
-              -type f \
-              -print0 2>/dev/null | \
-              xargs -0 grep -li "#${HEX}\|#$(echo ${HEX} | tr '[:lower:]' '[:upper:]')" 2>/dev/null || true)
-
-            if [ -n "$MATCHES" ]; then
-              # For each matching file, get the actual violation lines
-              while IFS= read -r FILE; do
-                LINES=$(grep -in "#${HEX}" "$FILE" 2>/dev/null || true)
-                if [ -n "$LINES" ]; then
-                  # Check if it's in a comment (contextual exception — documented retired colors in comments)
-                  BRAND_SURFACE_VIOLATIONS=$(echo "$LINES" | grep -v "^\s*//" | grep -v "^\s*\*" | grep -v "was #" | grep -v "retired" | grep -v "DR-033" || true)
-                  if [ -n "$BRAND_SURFACE_VIOLATIONS" ]; then
-                    VIOLATIONS=$((VIOLATIONS + 1))
-                    VIOLATION_REPORT="${VIOLATION_REPORT}\n  ✗ RETIRED NAVY #${HEX} as brand surface in: ${FILE}"
-                    VIOLATION_REPORT="${VIOLATION_REPORT}\n$(echo "$BRAND_SURFACE_VIOLATIONS" | head -5 | sed 's/^/    /')"
-                  fi
-                fi
-              done <<< "$MATCHES"
-            fi
-          done
-
-          # ── Scan for hardcoded approved brand colors (bypass of token system) ──
-          # Only flag when the literal hex appears as a primary property value (not in variables/comments)
-          echo ""
-          echo "Scanning for hardcoded approved colors outside token definitions..."
-
-          APPROVED_BYPASS_PATTERNS=(
-            "${APPROVED_BLACK}"
-            "${APPROVED_GOLD}"
-            "#E8A020"  # uppercase variant of gold
-          )
-
-          for APPROVED_HEX in "${APPROVED_BYPASS_PATTERNS[@]}"; do
-            HEX_LOWER=$(echo "$APPROVED_HEX" | tr '[:upper:]' '[:lower:]' | tr -d '#')
-
-            MATCHES=$(find . \( "${FIND_NAMES[@]}" \) \
-              "${FIND_EXCLUDES[@]}" \
-              -not -name "tokens.css" \
-              -not -name "tailwind.config.*" \
-              -not -name "globals.css" \
-              -not -name "styles.css" \
-              -not -name "index.css" \
-              -not -name "GS_COLOR_CONTRACT_v1.json" \
-              -not -name "*.md" \
-              -type f \
-              -print0 2>/dev/null | \
-              xargs -0 grep -li "#${HEX_LOWER}\|#$(echo ${HEX_LOWER} | tr '[:lower:]' '[:upper:]')" 2>/dev/null || true)
-
-            if [ -n "$MATCHES" ]; then
-              while IFS= read -r FILE; do
-                LINES=$(grep -in "#${HEX_LOWER}\|#$(echo ${HEX_LOWER} | tr '[:lower:]' '[:upper:]')" "$FILE" 2>/dev/null | \
-                  grep -v "^\s*//" | grep -v "^\s*\*" | grep -v "DR-033" | grep -v "was #" || true)
-                if [ -n "$LINES" ]; then
-                  echo "  ⚠  Hardcoded approved color ${APPROVED_HEX} outside token system: ${FILE}"
-                  echo "     Consider using CSS variable (e.g. var(--gs-color-black))"
-                fi
-              done <<< "$MATCHES"
-            fi
-          done
-
-          # ── Report results ─────────────────────────────────────────────────────
-          echo ""
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          if [ $VIOLATIONS -gt 0 ]; then
-            echo "  ✗ COLOR GOVERNANCE FAILED — ${VIOLATIONS} violation(s) found"
-            echo ""
-            echo -e "${VIOLATION_REPORT}"
-            echo ""
-            echo "  Retired navy colors MUST NOT appear as brand surfaces."
-            echo "  Approved palette: Black #050505 · Gold #E8A020 · White #FFFFFF"
-            echo "  Authority: DR-033 (gigasphere-master-data-room/DR-033_COLOR_GOVERNANCE.md)"
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            exit 1
-          else
-            echo "  ✓ COLOR GOVERNANCE PASSED — no retired navy brand surfaces found"
-            echo "  Approved palette in effect: Black ${APPROVED_BLACK} · Gold ${APPROVED_GOLD} · White ${APPROVED_WHITE}"
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          fi
+      - name: Run color governance validator
+        run: node scripts/gs-color-validator.mjs .

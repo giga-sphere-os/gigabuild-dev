@@ -938,7 +938,7 @@ select {
 }
 .module-card.active {
   border-color: var(--gold);
-  background: linear-gradient(180deg, rgba(24,32,56,0.9), rgba(7,11,20,0.98));
+  background: linear-gradient(180deg, rgba(15, 15, 15, 0.9), rgba(5, 5, 5, 0.98));
 }
 .module-card.coming-soon {
   border-color: rgba(232, 160, 32, 0.35);
@@ -1490,7 +1490,7 @@ body.gb-native .checkout-panel {
   padding: 12px 14px;
   border: 1px solid var(--gold-ring);
   border-radius: var(--radius);
-  background: rgba(5, 9, 20, 0.96);
+  background: rgba(5, 5, 5, 0.96);
   box-shadow: var(--shadow-card);
 }
 .resume-banner[hidden] { display: none; }
@@ -1661,7 +1661,7 @@ body,
 .tier-btn.active,
 .pct-base-option.active,
 .seg-list .seg.active {
-  background: linear-gradient(180deg, rgba(24, 32, 56, 0.9), rgba(7, 11, 20, 0.98)) !important;
+  background: linear-gradient(180deg, rgba(15, 15, 15, 0.9), rgba(5, 5, 5, 0.98)) !important;
   color: var(--white);
 }
 
@@ -1671,7 +1671,7 @@ body,
 .tier-btn:hover,
 .pct-base-option:hover,
 .seg-list .seg:hover {
-  background: linear-gradient(180deg, rgba(24, 32, 56, 0.82), rgba(7, 11, 20, 0.96)) !important;
+  background: linear-gradient(180deg, rgba(15, 15, 15, 0.82), rgba(5, 5, 5, 0.96)) !important;
 }
 
 .gb-ai-dock {
@@ -1699,7 +1699,7 @@ body,
   border: 1px solid var(--gold-ring);
   border-radius: 999px;
   color: var(--white);
-  background: linear-gradient(135deg, rgba(5, 9, 20, 0.96), rgba(232, 160, 32, 0.16));
+  background: linear-gradient(135deg, rgba(5, 5, 5, 0.96), rgba(232, 160, 32, 0.16));
   box-shadow: 0 18px 54px rgba(0, 0, 0, 0.42), 0 0 34px rgba(232, 160, 32, 0.12);
   display: inline-flex;
   align-items: center;

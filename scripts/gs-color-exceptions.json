@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "authority": "DR-033 — GigaSphere Global Color Governance (2026-08-10)",
+  "description": "Explicit contextual exceptions to color governance enforcement. Every exception requires exact file, exact color, exact technical reason, and DR-033 authority.",
+  "exceptions": []
+}
