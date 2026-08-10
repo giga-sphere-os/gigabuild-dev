@@ -1,1 +1,1 @@
-{"version":"2","authority":"DR-033","token_files":[],"exceptions":[{"exact":"src/art.css","reason":"Test exception for art.css only","category":"test"}]}
+{"version":"2","authority":"DR-033","token_files":[],"exceptions":[{"exact":"src/art.css","reason":"Only art.css","category":"test"}]}

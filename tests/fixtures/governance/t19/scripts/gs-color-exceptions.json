@@ -1,1 +1,1 @@
-{"version":"2","authority":"DR-033","token_files":[],"exceptions":[{"exact":"src/chart.css","reason":"Data visualization chart background — semantic, not brand surface","category":"data_visualization","require_pattern":"rgba\\(13.*0\\.1\\)"}]}
+{"version":"2","authority":"DR-033","token_files":[],"exceptions":[{"exact":"src/chart.css","reason":"Data visualization chart — opacity-derived gold not suppressible via CSS var in this render context. DR-033 authority.","category":"data_visualization_opacity_derived","require_pattern":"rgba\\(232.*0\\.1\\)"}]}
