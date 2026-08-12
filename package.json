@@ -23,5 +23,9 @@
     "@capacitor/cli": "^8.3.4",
     "@capacitor/ios": "^8.3.4",
     "jsdom": "^27.2.0"
+  },
+  "overrides": {
+    "brace-expansion": "5.0.9",
+    "tar": "7.5.21"
   }
 }
